@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/restaurant-ordering-system/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "builder": "rspack",
+    "tsConfigPath": "apps/restaurant-ordering-system/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/restaurant-ordering-system",
+  "projects": {
+    "inbound-service": {
+      "type": "application",
+      "root": "apps/inbound-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/inbound-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/inbound-service/tsconfig.app.json"
+      }
+    },
+    "outbound-service": {
+      "type": "application",
+      "root": "apps/outbound-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/outbound-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/outbound-service/tsconfig.app.json"
+      }
+    },
+    "restaurant-ordering-system": {
+      "type": "application",
+      "root": "apps/restaurant-ordering-system",
+      "entryFile": "main",
+      "sourceRoot": "apps/restaurant-ordering-system/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/restaurant-ordering-system/tsconfig.app.json"
+      }
+    },
+    "shared": {
+      "type": "library",
+      "root": "libs/shared",
+      "entryFile": "index",
+      "sourceRoot": "libs/shared/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/shared/tsconfig.lib.json"
+      }
+    },
+    "task-service": {
+      "type": "application",
+      "root": "apps/task-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/task-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/task-service/tsconfig.app.json"
+      }
+    }
+  }
+}
