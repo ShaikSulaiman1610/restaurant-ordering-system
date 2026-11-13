@@ -1,132 +1,321 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🍽️ Restaurant Ordering & Menu Management System
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A backend application built with **NestJS, TypeScript, PostgreSQL, and TypeORM** for managing restaurant menus, categories, products, inventory, orders, and payments.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+The project is being developed incrementally, with an emphasis on clean architecture, tenant data isolation, database reliability, automated testing, and scalability.
 
-## Description
+**Project Status:** In active development
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 1. Technology Stack
 
-## Project setup
+| Technology | Purpose |
+|---|---|
+| NestJS | Backend framework |
+| TypeScript | Type-safe application development |
+| PostgreSQL | Relational database |
+| TypeORM | Database entities and queries |
+| Jest | Automated unit testing |
+| PowerShell | Local API testing |
+| Git | Source version control |
+| GitHub | Remote source repository |
 
-```bash
-$ npm install
+## 2. Project Architecture
+
+The project uses a multi-application NestJS workspace and a tenant-aware database connection design.
+
+```text
+                    HTTP Client
+                         |
+                         v
+                  NestJS Controller
+                         |
+                         v
+                   Business Service
+                         |
+                         v
+                TenantConnectionService
+                         |
+                         v
+                  Tenant Registry
+                         |
+                +--------+--------+
+                |                 |
+                v                 v
+        Restaurant A DB    Restaurant B DB
+                |                 |
+                v                 v
+          Categories          Categories
 ```
 
-## Compile and run the project
+**Architecture goal:** Each restaurant's data should remain isolated from other restaurants.
 
-```bash
-# development
-$ npm run start
+Tenant database selection is implemented as part of the current foundation. Full multi-tenant security and concurrency verification remain future work.
 
-# watch mode
-$ npm run start:dev
+## 3. Current Features
 
-# production mode
-$ npm run start:prod
+### Category Management
+
+The Category module currently supports:
+
+- Create a category
+- Retrieve all categories
+- Retrieve a category by ID
+- Update an existing category
+- Delete a category
+- Detect duplicate category names using PostgreSQL uniqueness constraints
+- Return appropriate HTTP errors for missing or conflicting categories
+- Select tenant database connections through `TenantConnectionService`
+
+### Category API Endpoints
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | `/tenants/:tenantId/categories` | Create category |
+| GET | `/tenants/:tenantId/categories` | List categories |
+| GET | `/tenants/:tenantId/categories/:categoryId` | Retrieve category |
+| PATCH | `/tenants/:tenantId/categories/:categoryId` | Update category |
+| DELETE | `/tenants/:tenantId/categories/:categoryId` | Delete category |
+
+### Example PATCH Request
+
+```http
+PATCH /tenants/{tenantId}/categories/{categoryId}
+Content-Type: application/json
 ```
 
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```json
+{
+  "name": "Hot Starters"
+}
 ```
 
-## Deployment
+### Example DELETE Response
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+```text
+HTTP/1.1 204 No Content
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+A subsequent GET for the deleted category returns:
 
-## Observability
-
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
-
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
-
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
-
-To add it to this project, run this and approve the code it prints at [observe.nestjs.com/link](https://observe.nestjs.com/link) - signing up for free if you have no account:
-
-```bash
-$ npx @nestjs/observe link
+```json
+{
+  "message": "Category not found",
+  "error": "Not Found",
+  "statusCode": 404
+}
 ```
 
-It installs `@nestjs/observe`, wires it into `AppModule` and `main.ts`, and writes the app key and secret into `.env`, which every `nest start` script (`start`, `start:dev`, `start:debug`) then loads. In production, set `OBSERVE_APP_KEY` and `OBSERVE_APP_SECRET` in the environment instead.
+## 4. Project Folder Structure
 
-Or do it by hand:
-
-```bash
-$ npm install @nestjs/observe
+```text
+restaurant-ordering-system/
+|
+├── apps/
+│   ├── restaurant-ordering-system/
+│   ├── task-service/
+│   │   └── src/
+│   │       ├── application/
+│   │       │   └── category/
+│   │       │       ├── category.controller.ts
+│   │       │       ├── category.service.ts
+│   │       │       ├── category.service.spec.ts
+│   │       │       └── dto/
+│   │       │           ├── create-category.dto.ts
+│   │       │           └── update-category.dto.ts
+│   │       └── infrastructure/
+│   │           └── database/
+│   │               ├── entities/
+│   │               └── tenant-connection/
+│   ├── inbound-service/
+│   └── outbound-service/
+|
+├── libs/
+│   └── shared/
+|
+├── docs/
+│   ├── day-01.md
+│   └── day-02.md
+|
+├── package.json
+├── tsconfig.json
+├── jest.config.ts
+└── README.md
 ```
 
-Then follow the [setup guide](https://docs.nestjs.com/observability/sdk) - it takes a single import and an app key.
+### Important Files
 
-The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
+| File | Responsibility |
+|---|---|
+| `main.ts` | Starts the NestJS application |
+| `category.controller.ts` | Handles category HTTP requests |
+| `category.service.ts` | Executes category business logic |
+| `create-category.dto.ts` | Defines category creation input |
+| `update-category.dto.ts` | Defines category update input |
+| `category.entity.ts` | Maps Category data to PostgreSQL |
+| `tenant-connection.service.ts` | Resolves the requested tenant database connection |
+| `category.service.spec.ts` | Tests CategoryService using Jest |
+| `docs/day-01.md` | Day 1 development notes |
+| `docs/day-02.md` | Day 2 development notes |
 
-## Resources
+## 5. Local Development Setup
 
-Check out a few resources that may come in handy when working with NestJS:
+### Prerequisites
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- Node.js and npm
+- PostgreSQL
+- Git
+- VS Code or another code editor
+- Database configuration for the tenant registry and tenant databases
 
-## Support
+### Clone the Repository
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+git clone https://github.com/ShaikSulaiman1610/restaurant-ordering-system.git
+cd restaurant-ordering-system
+```
 
-## Stay in touch
+### Install Dependencies
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+npm install
+```
 
-## License
+### Configure Databases
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Configure the required PostgreSQL connections according to the application's database configuration.
+
+The tenant registry must contain the tenant-to-database mapping, and tenant databases must have the required schema or migrations applied.
+
+Database credentials and secrets must not be committed to GitHub.
+
+### Build the Task Service
+
+```bash
+npx nest build task-service
+```
+
+### Start the Task Service
+
+```bash
+npx nest start task-service
+```
+
+The service has been tested locally using:
+
+```text
+http://localhost:3000
+```
+
+## 6. Testing
+
+### Jest Unit Tests
+
+Run the CategoryService unit tests:
+
+```bash
+npm test -- category.service.spec.ts --runInBand
+```
+
+### Verified Test Result
+
+```text
+Test Suites: 1 passed, 1 total
+Tests:       10 passed, 10 total
+```
+
+The passing tests cover category creation, retrieval, updating, deletion, duplicate-name handling during updates, missing-category errors, and tenant connection selection.
+
+These are unit tests using mocked dependencies. Real PostgreSQL integration tests, concurrency tests, and full tenant-isolation tests are planned.
+
+## 7. HTTP Status Codes
+
+| Status | Meaning |
+|---|---|
+| 200 | Successful retrieval or update |
+| 204 | Successful deletion without response body |
+| 400 | Invalid request |
+| 404 | Category not found |
+| 409 | Duplicate category name conflict |
+
+## 8. Development Progress
+
+### Day 1 — Initial Foundation
+
+- NestJS multi-application project setup
+- PostgreSQL and TypeORM integration
+- Tenant registry and tenant-aware database connection foundation
+- Category entity and initial APIs
+- Git and GitHub repository setup
+- Development report created
+
+[Read Day 1 Report](docs/day-01.md)
+
+### Day 2 — Category CRUD and Testing
+
+- Implemented Category PATCH endpoint
+- Implemented Category DELETE endpoint
+- Added UpdateCategoryDto
+- Verified PATCH behavior using PowerShell
+- Verified DELETE response `204`
+- Verified deleted category returns `404`
+- Created Jest CategoryService unit tests
+- Successfully executed 10 unit tests
+- Committed and pushed code to GitHub
+- Created detailed Day 2 documentation
+
+[Read Day 2 Report](docs/day-02.md)
+
+## 9. Planned Features
+
+The following features are planned and are **not yet marked complete**:
+
+- Product and dish management
+- Category–product relationships
+- Modifiers and modifier groups
+- Inventory tracking and availability
+- Restaurant management
+- Order creation and server-side total calculation
+- Order item price snapshots
+- Idempotent order processing
+- Simulated payment processing and transaction history
+- Cloudinary image uploads
+- Swagger API documentation
+- Connection pool configuration and monitoring
+- Database indexing and query optimization
+- Concurrent request testing
+- Load and performance testing
+- Production deployment
+
+## 10. Engineering Priorities
+
+This project aims to demonstrate:
+
+1. Separation of Controllers, Services, and database responsibilities.
+2. Tenant-aware data access and isolation.
+3. Database-level uniqueness and consistency.
+4. Correct validation and error handling.
+5. Automated testing.
+6. Safe concurrency and transaction handling.
+7. Efficient PostgreSQL connection management.
+8. Clear documentation and maintainable code.
+
+These are development goals; some require further implementation and verification.
+
+## 11. Documentation
+
+Detailed development notes are available in the `docs/` folder:
+
+- [Day 1 — Initial Setup](docs/day-01.md)
+- [Day 2 — Category Update, Delete and Jest Testing](docs/day-02.md)
+
+## 12. Repository
+
+**GitHub:** https://github.com/ShaikSulaiman1610/restaurant-ordering-system
+
+**Current branch:** `main`
+
+**Development status:** Active
+
+---
+
+Built as a backend technical assignment and hands-on learning project using NestJS, TypeScript, PostgreSQL, and TypeORM.
