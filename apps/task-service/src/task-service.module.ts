@@ -10,6 +10,7 @@ import { Tenant } from './infrastructure/database/entities/tenant.entity';
 import { TenantDatabaseModule } from './infrastructure/database/tenant-database.module';
 
 import { CategoryModule } from './application/category/category.module';
+import { ProductModule } from './application/product/product.module';
 
 @Module({
   imports: [
@@ -43,10 +44,9 @@ import { CategoryModule } from './application/category/category.module';
 
     TenantDatabaseModule,
     CategoryModule,
+    ProductModule,
   ],
   controllers: [TaskServiceController],
-  providers: [
-    TaskServiceService,
-  ],
+  providers: [TaskServiceService],
 })
 export class TaskServiceModule {}

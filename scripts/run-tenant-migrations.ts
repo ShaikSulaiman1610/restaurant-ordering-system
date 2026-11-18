@@ -4,7 +4,10 @@ import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
 
 import { Category } from '../apps/task-service/src/infrastructure/database/entities/category/category.entity';
+import { Product } from '../apps/task-service/src/infrastructure/database/entities/product/product.entity';
+
 import { CreateCategories1762970000000 } from '../apps/task-service/src/infrastructure/database/migrations/1762970000000-CreateCategories';
+import { CreateProducts1763530000000 } from '../apps/task-service/src/infrastructure/database/migrations/1763530000000-CreateProducts';
 
 config();
 
@@ -15,9 +18,7 @@ async function main(): Promise<void> {
     throw new Error('TENANT_DB_NAME is required');
   }
 
-  if (
-    !/^restaurant_[a-z0-9_]+_db$/.test(databaseName)
-  ) {
+  if (!/^restaurant_[a-z0-9_]+_db$/.test(databaseName)) {
     throw new Error('Invalid tenant database name');
   }
 
@@ -29,8 +30,12 @@ async function main(): Promise<void> {
     password: process.env.DB_PASSWORD,
     database: databaseName,
 
-    entities: [Category],
-    migrations: [CreateCategories1762970000000],
+    entities: [Category, Product],
+
+    migrations: [
+      CreateCategories1762970000000,
+      CreateProducts1763530000000,
+    ],
 
     synchronize: false,
     migrationsTransactionMode: 'all',

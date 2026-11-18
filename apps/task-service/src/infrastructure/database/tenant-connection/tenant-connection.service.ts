@@ -11,6 +11,7 @@ import { DataSource, Repository } from 'typeorm';
 
 import { Tenant } from '../entities/tenant.entity';
 import { Category } from '../entities/category/category.entity';
+import { Product } from '../entities/product/product.entity';
 
 @Injectable()
 export class TenantConnectionService implements OnModuleDestroy {
@@ -76,8 +77,8 @@ export class TenantConnectionService implements OnModuleDestroy {
       password: this.configService.getOrThrow<string>('DB_PASSWORD'),
       database: databaseName,
 
-      // Register tenant-specific entities here
-      entities: [Category],
+      // Tenant-specific entities
+      entities: [Category, Product],
 
       // Database schema changes happen through migrations
       synchronize: false,
