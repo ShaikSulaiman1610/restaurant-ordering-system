@@ -1,6 +1,10 @@
 
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import {
+  DocumentBuilder,
+  SwaggerModule,
+} from '@nestjs/swagger';
 
 import { TaskServiceModule } from './task-service.module';
 
@@ -13,6 +17,31 @@ async function bootstrap(): Promise<void> {
       forbidNonWhitelisted: true,
       transform: true,
     }),
+  );
+
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Restaurant Ordering & Menu Management API')
+    .setDescription(
+      'Multi-tenant restaurant ordering, menu, inventory and order management API',
+    )
+    .setVersion('1.0')
+    .addTag('Restaurants')
+    .addTag('Categories')
+    .addTag('Products')
+    .addTag('Modifiers')
+    .addTag('Inventory')
+    .addTag('Orders')
+    .build();
+
+  const swaggerDocument = SwaggerModule.createDocument(
+    app,
+    swaggerConfig,
+  );
+
+  SwaggerModule.setup(
+    'api/docs',
+    app,
+    swaggerDocument,
   );
 
   await app.listen(process.env.PORT ?? 3000);

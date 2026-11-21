@@ -12,10 +12,29 @@ import {
   Post,
 } from '@nestjs/common';
 
+import {
+  ApiBadRequestResponse,
+  ApiConflictResponse,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
+
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 
+@ApiTags('Products')
+@ApiParam({
+  name: 'tenantId',
+  description: 'Unique restaurant ID (UUID)',
+  type: String,
+  format: 'uuid',
+})
 @Controller('tenants/:tenantId/products')
 export class ProductController {
   constructor(
@@ -23,6 +42,20 @@ export class ProductController {
   ) {}
 
   @Post()
+  @ApiOperation({
+    summary: 'Create a new product',
+    description:
+      'Creates a menu product for the specified restaurant.',
+  })
+  @ApiCreatedResponse({
+    description: 'Product created successfully.',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid product data or restaurant ID.',
+  })
+  @ApiConflictResponse({
+    description: 'Product conflicts with an existing record.',
+  })
   async create(
     @Param('tenantId', ParseUUIDPipe) tenantId: string,
     @Body() dto: CreateProductDto,
@@ -31,6 +64,14 @@ export class ProductController {
   }
 
   @Get()
+  @ApiOperation({
+    summary: 'Get all products',
+    description:
+      'Returns all menu products belonging to the specified restaurant.',
+  })
+  @ApiOkResponse({
+    description: 'Products retrieved successfully.',
+  })
   async findAll(
     @Param('tenantId', ParseUUIDPipe) tenantId: string,
   ) {
@@ -38,6 +79,21 @@ export class ProductController {
   }
 
   @Get(':productId')
+  @ApiOperation({
+    summary: 'Get product by ID',
+  })
+  @ApiParam({
+    name: 'productId',
+    description: 'Unique product ID (UUID)',
+    type: String,
+    format: 'uuid',
+  })
+  @ApiOkResponse({
+    description: 'Product retrieved successfully.',
+  })
+  @ApiNotFoundResponse({
+    description: 'Product not found.',
+  })
   async findOne(
     @Param('tenantId', ParseUUIDPipe) tenantId: string,
     @Param('productId', ParseUUIDPipe) productId: string,
@@ -46,6 +102,26 @@ export class ProductController {
   }
 
   @Patch(':productId')
+  @ApiOperation({
+    summary: 'Update a product',
+    description:
+      'Updates an existing restaurant menu product.',
+  })
+  @ApiParam({
+    name: 'productId',
+    description: 'Unique product ID (UUID)',
+    type: String,
+    format: 'uuid',
+  })
+  @ApiOkResponse({
+    description: 'Product updated successfully.',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid product update data.',
+  })
+  @ApiNotFoundResponse({
+    description: 'Product not found.',
+  })
   async update(
     @Param('tenantId', ParseUUIDPipe) tenantId: string,
     @Param('productId', ParseUUIDPipe) productId: string,
@@ -60,6 +136,25 @@ export class ProductController {
 
   @Delete(':productId')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Delete a product',
+  })
+  @ApiParam({
+    name: 'productId',
+    description: 'Unique product ID (UUID)',
+    type: String,
+    format: 'uuid',
+  })
+  @ApiNoContentResponse({
+    description: 'Product deleted successfully.',
+  })
+  @ApiNotFoundResponse({
+    description: 'Product not found.',
+  })
+  @ApiConflictResponse({
+    description:
+      'Product cannot be deleted because related records exist.',
+  })
   async remove(
     @Param('tenantId', ParseUUIDPipe) tenantId: string,
     @Param('productId', ParseUUIDPipe) productId: string,
