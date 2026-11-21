@@ -12,6 +12,7 @@ import { TenantDatabaseModule } from './infrastructure/database/tenant-database.
 import { CategoryModule } from './application/category/category.module';
 import { ProductModule } from './application/product/product.module';
 import { ModifierModule } from './application/modifier/modifier.module';
+import { InventoryModule } from './application/inventory/inventory.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { ModifierModule } from './application/modifier/modifier.module';
     CategoryModule,
     ProductModule,
     ModifierModule,
+    InventoryModule,
   ],
   controllers: [TaskServiceController],
   providers: [TaskServiceService],

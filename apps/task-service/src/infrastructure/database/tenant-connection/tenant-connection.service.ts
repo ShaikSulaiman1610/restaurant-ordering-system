@@ -13,6 +13,7 @@ import { Tenant } from '../entities/tenant.entity';
 import { Category } from '../entities/category/category.entity';
 import { Product } from '../entities/product/product.entity';
 import { Modifier } from '../entities/modifier/modifier.entity';
+import { Inventory } from '../entities/inventory/inventory.entity';
 
 @Injectable()
 export class TenantConnectionService implements OnModuleDestroy {
@@ -79,7 +80,12 @@ export class TenantConnectionService implements OnModuleDestroy {
       database: databaseName,
 
       // Tenant-specific entities
-      entities: [Category, Product, Modifier],
+      entities: [
+        Category,
+        Product,
+        Modifier,
+        Inventory,
+      ],
 
       // Database schema changes happen through migrations
       synchronize: false,

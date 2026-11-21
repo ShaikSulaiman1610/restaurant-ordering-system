@@ -6,10 +6,12 @@ import { DataSource } from 'typeorm';
 import { Category } from '../apps/task-service/src/infrastructure/database/entities/category/category.entity';
 import { Product } from '../apps/task-service/src/infrastructure/database/entities/product/product.entity';
 import { Modifier } from '../apps/task-service/src/infrastructure/database/entities/modifier/modifier.entity';
+import { Inventory } from '../apps/task-service/src/infrastructure/database/entities/inventory/inventory.entity';
 
 import { CreateCategories1762970000000 } from '../apps/task-service/src/infrastructure/database/migrations/1762970000000-CreateCategories';
 import { CreateProducts1763530000000 } from '../apps/task-service/src/infrastructure/database/migrations/1763530000000-CreateProducts';
 import { CreateModifiers1763700000000 } from '../apps/task-service/src/infrastructure/database/migrations/1763700000000-CreateModifiers';
+import { CreateInventories1763790000000 } from '../apps/task-service/src/infrastructure/database/migrations/1763790000000-CreateInventories';
 
 config();
 
@@ -36,12 +38,14 @@ async function main(): Promise<void> {
       Category,
       Product,
       Modifier,
+      Inventory,
     ],
 
     migrations: [
       CreateCategories1762970000000,
       CreateProducts1763530000000,
       CreateModifiers1763700000000,
+      CreateInventories1763790000000,
     ],
 
     synchronize: false,
