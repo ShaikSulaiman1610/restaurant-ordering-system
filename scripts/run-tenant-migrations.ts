@@ -7,11 +7,14 @@ import { Category } from '../apps/task-service/src/infrastructure/database/entit
 import { Product } from '../apps/task-service/src/infrastructure/database/entities/product/product.entity';
 import { Modifier } from '../apps/task-service/src/infrastructure/database/entities/modifier/modifier.entity';
 import { Inventory } from '../apps/task-service/src/infrastructure/database/entities/inventory/inventory.entity';
+import { Order } from '../apps/task-service/src/infrastructure/database/entities/order/order.entity';
+import { OrderItem } from '../apps/task-service/src/infrastructure/database/entities/order/order-item.entity';
 
 import { CreateCategories1762970000000 } from '../apps/task-service/src/infrastructure/database/migrations/1762970000000-CreateCategories';
 import { CreateProducts1763530000000 } from '../apps/task-service/src/infrastructure/database/migrations/1763530000000-CreateProducts';
 import { CreateModifiers1763700000000 } from '../apps/task-service/src/infrastructure/database/migrations/1763700000000-CreateModifiers';
 import { CreateInventories1763790000000 } from '../apps/task-service/src/infrastructure/database/migrations/1763790000000-CreateInventories';
+import { CreateOrders1763800000000 } from '../apps/task-service/src/infrastructure/database/migrations/1763800000000-CreateOrders';
 
 config();
 
@@ -39,6 +42,8 @@ async function main(): Promise<void> {
       Product,
       Modifier,
       Inventory,
+      Order,
+      OrderItem,
     ],
 
     migrations: [
@@ -46,6 +51,7 @@ async function main(): Promise<void> {
       CreateProducts1763530000000,
       CreateModifiers1763700000000,
       CreateInventories1763790000000,
+      CreateOrders1763800000000,
     ],
 
     synchronize: false,

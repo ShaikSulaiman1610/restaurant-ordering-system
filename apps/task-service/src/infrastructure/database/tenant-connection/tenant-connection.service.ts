@@ -14,6 +14,8 @@ import { Category } from '../entities/category/category.entity';
 import { Product } from '../entities/product/product.entity';
 import { Modifier } from '../entities/modifier/modifier.entity';
 import { Inventory } from '../entities/inventory/inventory.entity';
+import { Order } from '../entities/order/order.entity';
+import { OrderItem } from '../entities/order/order-item.entity';
 
 @Injectable()
 export class TenantConnectionService implements OnModuleDestroy {
@@ -85,6 +87,8 @@ export class TenantConnectionService implements OnModuleDestroy {
         Product,
         Modifier,
         Inventory,
+        Order,
+        OrderItem,
       ],
 
       // Database schema changes happen through migrations

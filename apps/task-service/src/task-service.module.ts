@@ -13,6 +13,7 @@ import { CategoryModule } from './application/category/category.module';
 import { ProductModule } from './application/product/product.module';
 import { ModifierModule } from './application/modifier/modifier.module';
 import { InventoryModule } from './application/inventory/inventory.module';
+import { OrderModule } from './application/order/order.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { InventoryModule } from './application/inventory/inventory.module';
     ProductModule,
     ModifierModule,
     InventoryModule,
+    OrderModule,
   ],
   controllers: [TaskServiceController],
   providers: [TaskServiceService],
