@@ -5,9 +5,11 @@ import { DataSource } from 'typeorm';
 
 import { Category } from '../apps/task-service/src/infrastructure/database/entities/category/category.entity';
 import { Product } from '../apps/task-service/src/infrastructure/database/entities/product/product.entity';
+import { Modifier } from '../apps/task-service/src/infrastructure/database/entities/modifier/modifier.entity';
 
 import { CreateCategories1762970000000 } from '../apps/task-service/src/infrastructure/database/migrations/1762970000000-CreateCategories';
 import { CreateProducts1763530000000 } from '../apps/task-service/src/infrastructure/database/migrations/1763530000000-CreateProducts';
+import { CreateModifiers1763700000000 } from '../apps/task-service/src/infrastructure/database/migrations/1763700000000-CreateModifiers';
 
 config();
 
@@ -30,11 +32,16 @@ async function main(): Promise<void> {
     password: process.env.DB_PASSWORD,
     database: databaseName,
 
-    entities: [Category, Product],
+    entities: [
+      Category,
+      Product,
+      Modifier,
+    ],
 
     migrations: [
       CreateCategories1762970000000,
       CreateProducts1763530000000,
+      CreateModifiers1763700000000,
     ],
 
     synchronize: false,
