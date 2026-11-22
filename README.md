@@ -1,163 +1,190 @@
-# 🍽️ Restaurant Ordering & Menu Management System
+﻿# Restaurant Ordering & Menu Management System
 
-A backend application built with **NestJS, TypeScript, PostgreSQL, and TypeORM** for managing restaurant menus, categories, products, inventory, orders, and payments.
+A multi-tenant restaurant management backend built with **NestJS, TypeScript, PostgreSQL, and TypeORM**.
 
-The project is being developed incrementally, with an emphasis on clean architecture, tenant data isolation, database reliability, automated testing, and scalability.
+The application manages restaurant registration, menu categories, products, modifiers, inventory, orders, and simulated payments.
 
-**Project Status:** In active development
+## 1. Project Status
 
-## 1. Technology Stack
+**Development progress:** Day 13 completed.
+
+**Latest verified results:**
+- 154 automated tests passed.
+- 18 test suites passed.
+- PostgreSQL integration tests passed.
+- TypeScript validation passed.
+- NestJS application build successful.
+- Swagger API documentation verified.
+
+Production deployment and additional security hardening remain future work.
+
+## 2. Technology Stack
 
 | Technology | Purpose |
 |---|---|
 | NestJS | Backend framework |
-| TypeScript | Type-safe application development |
+| TypeScript | Application development |
 | PostgreSQL | Relational database |
-| TypeORM | Database entities and queries |
-| Jest | Automated unit testing |
-| PowerShell | Local API testing |
-| Git | Source version control |
-| GitHub | Remote source repository |
+| TypeORM | Database access and migrations |
+| Jest | Unit and integration testing |
+| Swagger | API documentation |
+| Cloudinary | Restaurant image storage |
+| Git and GitHub | Version control |
 
-## 2. Project Architecture
+## 3. Architecture
 
-The project uses a multi-application NestJS workspace and a tenant-aware database connection design.
+The application uses a multi-tenant architecture with a separate PostgreSQL database for each restaurant.
 
 ```text
-                    HTTP Client
-                         |
-                         v
-                  NestJS Controller
-                         |
-                         v
-                   Business Service
-                         |
-                         v
-                TenantConnectionService
-                         |
-                         v
-                  Tenant Registry
-                         |
-                +--------+--------+
-                |                 |
-                v                 v
-        Restaurant A DB    Restaurant B DB
-                |                 |
-                v                 v
-          Categories          Categories
+HTTP Client
+    |
+    v
+NestJS Controller
+    |
+    v
+Business Service
+    |
+    v
+TenantConnectionService
+    |
+    v
+Restaurant Registry
+    |
+    +--------------------+
+    |                    |
+    v                    v
+Restaurant A DB     Restaurant B DB
+    |                    |
+    v                    v
+Restaurant Data      Restaurant Data
 ```
 
-**Architecture goal:** Each restaurant's data should remain isolated from other restaurants.
+### Multi-Tenant Design
 
-Tenant database selection is implemented as part of the current foundation. Full multi-tenant security and concurrency verification remain future work.
+- A central restaurant registry stores restaurant information and database mappings.
+- Each restaurant has its own PostgreSQL database.
+- Tenant-aware services resolve the appropriate database connection.
+- Tenant databases use TypeORM migrations.
+- Database connections are cached for reuse.
+- PostgreSQL connection pooling is configured.
 
-## 3. Current Features
+Database isolation is implemented, but complete tenant authorization and production security require further review.
+
+## 4. Implemented Features
+
+### Restaurant Management
+
+- Restaurant registration.
+- Restaurant information retrieval.
+- Automatic tenant database provisioning.
+- Database migrations during provisioning.
+- Cleanup handling for failed registration.
+- Restaurant cover image integration using Cloudinary.
 
 ### Category Management
 
-The Category module currently supports:
+- Create categories.
+- Retrieve categories.
+- Update categories.
+- Delete categories.
+- Prevent duplicate category names.
+- Validate incoming requests.
 
-- Create a category
-- Retrieve all categories
-- Retrieve a category by ID
-- Update an existing category
-- Delete a category
-- Detect duplicate category names using PostgreSQL uniqueness constraints
-- Return appropriate HTTP errors for missing or conflicting categories
-- Select tenant database connections through `TenantConnectionService`
+### Product Management
 
-### Category API Endpoints
+- Create and manage restaurant products.
+- Associate products with categories.
+- Maintain product information and pricing.
+- Support tenant-specific product data.
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| POST | `/tenants/:tenantId/categories` | Create category |
-| GET | `/tenants/:tenantId/categories` | List categories |
-| GET | `/tenants/:tenantId/categories/:categoryId` | Retrieve category |
-| PATCH | `/tenants/:tenantId/categories/:categoryId` | Update category |
-| DELETE | `/tenants/:tenantId/categories/:categoryId` | Delete category |
+### Modifier Management
 
-### Example PATCH Request
+- Manage product modifiers.
+- Associate modifiers with menu products.
+- Support modifier-related ordering functionality.
 
-```http
-PATCH /tenants/{tenantId}/categories/{categoryId}
-Content-Type: application/json
-```
+### Inventory Management
 
-```json
-{
-  "name": "Hot Starters"
-}
-```
+- Track product inventory.
+- Validate available stock.
+- Update inventory during order processing.
+- Restore inventory when eligible orders are cancelled.
+- Use database transactions for consistency.
 
-### Example DELETE Response
+### Order Management
+
+- Create orders.
+- Calculate order totals on the server.
+- Store order item information.
+- Track order status.
+- Validate allowed status transitions.
+- Prevent invalid cancellation scenarios.
+- Protect inventory changes using database transactions.
+
+### Payment Management
+
+- Simulated payment processing.
+- Track payment status.
+- Handle payment failures.
+- Support payment retries.
+- Prevent duplicate successful payments.
+- Protect payment and cancellation operations against concurrency conflicts.
+
+Payment processing is simulated; no real payment gateway is integrated.
+
+## 5. API Documentation
+
+Swagger UI:
 
 ```text
-HTTP/1.1 204 No Content
+http://localhost:3000/api/docs
 ```
 
-A subsequent GET for the deleted category returns:
-
-```json
-{
-  "message": "Category not found",
-  "error": "Not Found",
-  "statusCode": 404
-}
-```
-
-## 4. Project Folder Structure
+Swagger JSON:
 
 ```text
-restaurant-ordering-system/
-|
-├── apps/
-│   ├── restaurant-ordering-system/
-│   ├── task-service/
-│   │   └── src/
-│   │       ├── application/
-│   │       │   └── category/
-│   │       │       ├── category.controller.ts
-│   │       │       ├── category.service.ts
-│   │       │       ├── category.service.spec.ts
-│   │       │       └── dto/
-│   │       │           ├── create-category.dto.ts
-│   │       │           └── update-category.dto.ts
-│   │       └── infrastructure/
-│   │           └── database/
-│   │               ├── entities/
-│   │               └── tenant-connection/
-│   ├── inbound-service/
-│   └── outbound-service/
-|
-├── libs/
-│   └── shared/
-|
-├── docs/
-│   ├── day-01.md
-│   └── day-02.md
-|
-├── package.json
-├── tsconfig.json
-├── jest.config.ts
-└── README.md
+http://localhost:3000/api/docs-json
 ```
 
-### Important Files
+Documented API groups include:
 
-| File | Responsibility |
-|---|---|
-| `main.ts` | Starts the NestJS application |
-| `category.controller.ts` | Handles category HTTP requests |
-| `category.service.ts` | Executes category business logic |
-| `create-category.dto.ts` | Defines category creation input |
-| `update-category.dto.ts` | Defines category update input |
-| `category.entity.ts` | Maps Category data to PostgreSQL |
-| `tenant-connection.service.ts` | Resolves the requested tenant database connection |
-| `category.service.spec.ts` | Tests CategoryService using Jest |
-| `docs/day-01.md` | Day 1 development notes |
-| `docs/day-02.md` | Day 2 development notes |
+- Restaurants
+- Categories
+- Products
+- Modifiers
+- Inventory
+- Orders
+- Payments
 
-## 5. Local Development Setup
+### Example Payment API Paths
+
+```text
+/tenants/{tenantId}/payments
+/tenants/{tenantId}/payments/orders/{orderId}
+/tenants/{tenantId}/payments/{paymentId}
+```
+
+Refer to Swagger for the available HTTP methods, request bodies, parameters, and responses.
+
+## 6. Input Validation
+
+The application uses a global NestJS `ValidationPipe`.
+
+```typescript
+app.useGlobalPipes(
+  new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
+  }),
+);
+```
+
+This configuration rejects unexpected request properties and enables DTO-based input validation.
+
+An invalid order request containing an unexpected field and an empty items array was verified to return HTTP 400.
+
+## 7. Local Development
 
 ### Prerequisites
 
@@ -165,9 +192,9 @@ restaurant-ordering-system/
 - PostgreSQL
 - Git
 - VS Code or another code editor
-- Database configuration for the tenant registry and tenant databases
+- Required environment variables and database credentials
 
-### Clone the Repository
+### Clone Repository
 
 ```bash
 git clone https://github.com/ShaikSulaiman1610/restaurant-ordering-system.git
@@ -180,142 +207,133 @@ cd restaurant-ordering-system
 npm install
 ```
 
-### Configure Databases
+### Configure Environment
 
-Configure the required PostgreSQL connections according to the application's database configuration.
+Create a local `.env` file with the PostgreSQL and other required application settings.
 
-The tenant registry must contain the tenant-to-database mapping, and tenant databases must have the required schema or migrations applied.
+Use the actual environment configuration expected by the application.
 
-Database credentials and secrets must not be committed to GitHub.
+**Never commit database passwords, Cloudinary credentials, or other secrets.**
 
-### Build the Task Service
-
-```bash
-npx nest build task-service
-```
-
-### Start the Task Service
+### Start Backend
 
 ```bash
-npx nest start task-service
+npx nest start task-service --watch
 ```
 
-The service has been tested locally using:
+Default local API address:
 
 ```text
 http://localhost:3000
 ```
 
-## 6. Testing
+## 8. Testing
 
-### Jest Unit Tests
+### Run Automated Tests
 
-Run the CategoryService unit tests:
-
-```bash
-npm test -- category.service.spec.ts --runInBand
+```powershell
+npm test -- --runInBand
 ```
 
-### Verified Test Result
+### Run Tests Including PostgreSQL Integration Tests
+
+```powershell
+$env:RUN_DB_INTEGRATION_TESTS="true"; npm test -- --runInBand
+```
+
+PostgreSQL must be running and configured for integration tests.
+
+### Latest Verified Test Results
 
 ```text
-Test Suites: 1 passed, 1 total
-Tests:       10 passed, 10 total
+Test Suites: 18 passed, 18 total
+Tests:       154 passed, 154 total
+Snapshots:   0 total
 ```
 
-The passing tests cover category creation, retrieval, updating, deletion, duplicate-name handling during updates, missing-category errors, and tenant connection selection.
+### Integration Test Coverage
 
-These are unit tests using mocked dependencies. Real PostgreSQL integration tests, concurrency tests, and full tenant-isolation tests are planned.
+- Restaurant database provisioning.
+- Tenant database migrations.
+- Concurrent payment processing.
+- Payment and order cancellation race conditions.
 
-## 7. HTTP Status Codes
+Integration tests create temporary PostgreSQL databases and clean them up after execution.
 
-| Status | Meaning |
+## 9. TypeScript and Build Validation
+
+### TypeScript Check
+
+```powershell
+npx tsc --project tsconfig.spec.json --noEmit
+```
+
+### NestJS Build
+
+```powershell
+npx nest build task-service
+```
+
+Latest verified build:
+
+```text
+Rspack 2.3.2 compiled successfully in 5.80 s
+```
+
+## 10. Database Reliability
+
+The project uses:
+
+- TypeORM entities and migrations.
+- PostgreSQL database constraints.
+- Database transactions.
+- Pessimistic locking where required.
+- Tenant-specific database connections.
+- Connection pooling.
+- Unique constraints to prevent duplicate successful payments.
+
+These mechanisms help maintain consistency during concurrent operations.
+
+## 11. Development Documentation
+
+Detailed development reports are available in the `docs/` directory.
+
+| Day | Documentation |
 |---|---|
-| 200 | Successful retrieval or update |
-| 204 | Successful deletion without response body |
-| 400 | Invalid request |
-| 404 | Category not found |
-| 409 | Duplicate category name conflict |
+| 1 | [Day 1](docs/day-01.md) |
+| 2 | [Day 2](docs/day-02.md) |
+| 3 | [Day 3](docs/day-03.md) |
+| 4 | [Day 4](docs/day-04.md) |
+| 5 | [Day 5](docs/day-05.md) |
+| 6 | [Day 6](docs/day-06.md) |
+| 7 | [Day 7](docs/day-07.md) |
+| 8 | [Day 8](docs/day-08.md) |
+| 9 | [Day 9](docs/day-09.md) |
+| 10 | [Day 10](docs/day-10.md) |
+| 11 | [Day 11](docs/day-11.md) |
+| 12 | [Day 12](docs/day-12.md) |
+| 13 | [Day 13](docs/day-13.md) |
 
-## 8. Development Progress
+## 12. Remaining Work
 
-### Day 1 — Initial Foundation
+The following areas require additional implementation, verification, or review:
 
-- NestJS multi-application project setup
-- PostgreSQL and TypeORM integration
-- Tenant registry and tenant-aware database connection foundation
-- Category entity and initial APIs
-- Git and GitHub repository setup
-- Development report created
+- Authentication and authorization.
+- Production security hardening.
+- Rate limiting and CORS review.
+- Load and performance testing.
+- Production deployment.
+- Monitoring and operational readiness.
+- Further review of requirements and documentation.
 
-[Read Day 1 Report](docs/day-01.md)
-
-### Day 2 — Category CRUD and Testing
-
-- Implemented Category PATCH endpoint
-- Implemented Category DELETE endpoint
-- Added UpdateCategoryDto
-- Verified PATCH behavior using PowerShell
-- Verified DELETE response `204`
-- Verified deleted category returns `404`
-- Created Jest CategoryService unit tests
-- Successfully executed 10 unit tests
-- Committed and pushed code to GitHub
-- Created detailed Day 2 documentation
-
-[Read Day 2 Report](docs/day-02.md)
-
-## 9. Planned Features
-
-The following features are planned and are **not yet marked complete**:
-
-- Product and dish management
-- Category–product relationships
-- Modifiers and modifier groups
-- Inventory tracking and availability
-- Restaurant management
-- Order creation and server-side total calculation
-- Order item price snapshots
-- Idempotent order processing
-- Simulated payment processing and transaction history
-- Cloudinary image uploads
-- Swagger API documentation
-- Connection pool configuration and monitoring
-- Database indexing and query optimization
-- Concurrent request testing
-- Load and performance testing
-- Production deployment
-
-## 10. Engineering Priorities
-
-This project aims to demonstrate:
-
-1. Separation of Controllers, Services, and database responsibilities.
-2. Tenant-aware data access and isolation.
-3. Database-level uniqueness and consistency.
-4. Correct validation and error handling.
-5. Automated testing.
-6. Safe concurrency and transaction handling.
-7. Efficient PostgreSQL connection management.
-8. Clear documentation and maintainable code.
-
-These are development goals; some require further implementation and verification.
-
-## 11. Documentation
-
-Detailed development notes are available in the `docs/` folder:
-
-- [Day 1 — Initial Setup](docs/day-01.md)
-- [Day 2 — Category Update, Delete and Jest Testing](docs/day-02.md)
-
-## 12. Repository
+## 13. Repository
 
 **GitHub:** https://github.com/ShaikSulaiman1610/restaurant-ordering-system
 
-**Current branch:** `main`
+**Main branch:** `main`
 
-**Development status:** Active
+**Latest verified commit before this README update:** `c7e283b`
 
 ---
 
-Built as a backend technical assignment and hands-on learning project using NestJS, TypeScript, PostgreSQL, and TypeORM.
+Built as a backend technical assignment and learning project using NestJS, TypeScript, PostgreSQL, and TypeORM.
