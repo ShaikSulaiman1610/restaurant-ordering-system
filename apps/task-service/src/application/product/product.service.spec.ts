@@ -244,11 +244,13 @@ describe('ProductService', () => {
   it('handles duplicate product database error', async () => {
     productRepository.create.mockReturnValue({ ...product });
 
-  const dbError = new QueryFailedError(
-  'INSERT INTO products',
-  [],
-  { code: '23505' } as any,
-);
+    const dbError = new QueryFailedError(
+      'INSERT INTO products',
+      [],
+      Object.assign(new Error('Duplicate product'), {
+        code: '23505',
+      }),
+    );
 
     productRepository.save.mockRejectedValue(dbError);
 
@@ -263,7 +265,9 @@ describe('ProductService', () => {
     const dbError = new QueryFailedError(
       'INSERT INTO products',
       [],
-      { code: '23503' },
+      Object.assign(new Error('Foreign key violation'), {
+        code: '23503',
+      }),
     );
 
     productRepository.save.mockRejectedValue(dbError);
@@ -279,7 +283,9 @@ describe('ProductService', () => {
     const dbError = new QueryFailedError(
       'INSERT INTO products',
       [],
-      { code: '23514' },
+      Object.assign(new Error('Price check violation'), {
+        code: '23514',
+      }),
     );
 
     productRepository.save.mockRejectedValue(dbError);

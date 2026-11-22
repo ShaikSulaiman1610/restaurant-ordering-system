@@ -1,0 +1,323 @@
+
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
+import { QueryFailedError } from 'typeorm';
+
+import { RestaurantService } from './restaurant.service';
+import { RestaurantProvisioningService } from './restaurant-provisioning.service';
+import { Tenant } from '../../infrastructure/database/entities/tenant.entity';
+
+describe('RestaurantService', () => {
+  const databaseName =
+    'restaurant_1234567890abcdef1234567890abcdef_db';
+
+  const restaurant = {
+    id: 'restaurant-uuid',
+    restaurantName: 'Spice Garden',
+    location: 'Madurai',
+    databaseName,
+    coverImageUrl: null,
+    coverImagePublicId: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  } as Tenant;
+
+  let service: RestaurantService;
+
+  let repository: {
+    createQueryBuilder: jest.Mock;
+    create: jest.Mock;
+    save: jest.Mock;
+    find: jest.Mock;
+    findOneBy: jest.Mock;
+  };
+
+  let provisioningService: {
+    generateDatabaseName: jest.Mock;
+    provisionDatabase: jest.Mock;
+    cleanupDatabase: jest.Mock;
+  };
+
+  let queryBuilder: {
+    where: jest.Mock;
+    andWhere: jest.Mock;
+    getOne: jest.Mock;
+  };
+
+  beforeEach(() => {
+    queryBuilder = {
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      getOne: jest.fn().mockResolvedValue(null),
+    };
+
+    repository = {
+      createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
+      create: jest.fn().mockImplementation((data) => data),
+      save: jest.fn().mockResolvedValue(restaurant),
+      find: jest.fn().mockResolvedValue([restaurant]),
+      findOneBy: jest.fn().mockResolvedValue(restaurant),
+    };
+
+    provisioningService = {
+      generateDatabaseName: jest.fn().mockReturnValue(databaseName),
+      provisionDatabase: jest.fn().mockResolvedValue(undefined),
+      cleanupDatabase: jest.fn().mockResolvedValue(undefined),
+    };
+
+    service = new RestaurantService(
+      repository as never,
+      provisioningService as unknown as RestaurantProvisioningService,
+    );
+  });
+
+  describe('create', () => {
+    it('creates a restaurant with its own database', async () => {
+      const result = await service.create({
+        restaurantName: ' Spice Garden ',
+        location: ' Madurai ',
+      });
+
+      expect(result).toEqual(restaurant);
+
+      expect(
+        provisioningService.generateDatabaseName,
+      ).toHaveBeenCalledTimes(1);
+
+      expect(
+        provisioningService.provisionDatabase,
+      ).toHaveBeenCalledWith(databaseName);
+
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          restaurantName: 'Spice Garden',
+          location: 'Madurai',
+          databaseName,
+        }),
+      );
+
+      expect(repository.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects an empty restaurant name', async () => {
+      await expect(
+        service.create({
+          restaurantName: '   ',
+          location: 'Madurai',
+        }),
+      ).rejects.toThrow(BadRequestException);
+
+      expect(
+        provisioningService.provisionDatabase,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('rejects an empty location', async () => {
+      await expect(
+        service.create({
+          restaurantName: 'Spice Garden',
+          location: '   ',
+        }),
+      ).rejects.toThrow(BadRequestException);
+
+      expect(
+        provisioningService.provisionDatabase,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('rejects an existing restaurant before provisioning', async () => {
+      queryBuilder.getOne.mockResolvedValue(restaurant);
+
+      await expect(
+        service.create({
+          restaurantName: 'Spice Garden',
+          location: 'Madurai',
+        }),
+      ).rejects.toThrow(ConflictException);
+
+      expect(
+        provisioningService.provisionDatabase,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('does not save when provisioning fails', async () => {
+      provisioningService.provisionDatabase.mockRejectedValue(
+        new Error('Database creation failed'),
+      );
+
+      await expect(
+        service.create({
+          restaurantName: 'Spice Garden',
+          location: 'Madurai',
+        }),
+      ).rejects.toThrow('Database creation failed');
+
+      expect(repository.save).not.toHaveBeenCalled();
+    });
+
+    it('cleans up when registry save fails', async () => {
+      repository.save.mockRejectedValue(
+        new Error('Registry unavailable'),
+      );
+
+      await expect(
+        service.create({
+          restaurantName: 'Spice Garden',
+          location: 'Madurai',
+        }),
+      ).rejects.toThrow('Registry unavailable');
+
+      expect(
+        provisioningService.cleanupDatabase,
+      ).toHaveBeenCalledWith(databaseName);
+    });
+
+    it('preserves the original error if cleanup also fails', async () => {
+      repository.save.mockRejectedValue(
+        new Error('Registry unavailable'),
+      );
+
+      provisioningService.cleanupDatabase.mockRejectedValue(
+        new Error('Cleanup failed'),
+      );
+
+      await expect(
+        service.create({
+          restaurantName: 'Spice Garden',
+          location: 'Madurai',
+        }),
+      ).rejects.toThrow('Registry unavailable');
+
+      expect(
+        provisioningService.cleanupDatabase,
+      ).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns conflict for a concurrent duplicate', async () => {
+      const duplicateError = new QueryFailedError(
+        'INSERT INTO tenants ...',
+        [],
+        Object.assign(new Error('Duplicate restaurant'), {
+          code: '23505',
+          constraint: 'IDX_tenants_name_location',
+        }),
+      );
+
+      repository.save.mockRejectedValue(duplicateError);
+
+      await expect(
+        service.create({
+          restaurantName: 'Spice Garden',
+          location: 'Madurai',
+        }),
+      ).rejects.toThrow(ConflictException);
+
+      expect(
+        provisioningService.cleanupDatabase,
+      ).toHaveBeenCalledWith(databaseName);
+    });
+  });
+
+  describe('findAll', () => {
+    it('returns all restaurants', async () => {
+      const result = await service.findAll();
+
+      expect(result).toEqual([restaurant]);
+
+      expect(repository.find).toHaveBeenCalledWith({
+        order: { createdAt: 'DESC' },
+      });
+    });
+  });
+
+  describe('findOne', () => {
+    it('returns a restaurant by ID', async () => {
+      const result = await service.findOne('restaurant-uuid');
+
+      expect(result).toEqual(restaurant);
+    });
+
+    it('throws NotFoundException for an unknown ID', async () => {
+      repository.findOneBy.mockResolvedValue(null);
+
+      await expect(
+        service.findOne('unknown-id'),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('update', () => {
+    it('updates the restaurant name and location', async () => {
+      const updatedRestaurant = {
+        ...restaurant,
+        restaurantName: 'New Spice Garden',
+        location: 'Chennai',
+      };
+
+      repository.findOneBy.mockResolvedValue({
+        ...restaurant,
+      });
+
+      repository.save.mockResolvedValue(updatedRestaurant);
+
+      const result = await service.update('restaurant-uuid', {
+        restaurantName: ' New Spice Garden ',
+        location: ' Chennai ',
+      });
+
+      expect(result).toEqual(updatedRestaurant);
+
+      expect(repository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          restaurantName: 'New Spice Garden',
+          location: 'Chennai',
+        }),
+      );
+    });
+
+    it('rejects an empty updated name', async () => {
+      await expect(
+        service.update('restaurant-uuid', {
+          restaurantName: '   ',
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('rejects an empty updated location', async () => {
+      await expect(
+        service.update('restaurant-uuid', {
+          location: '   ',
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('rejects duplicate restaurant details on update', async () => {
+      const duplicateError = new QueryFailedError(
+        'UPDATE tenants ...',
+        [],
+        Object.assign(new Error('Duplicate restaurant'), {
+          code: '23505',
+          constraint: 'IDX_tenants_name_location',
+        }),
+      );
+
+      repository.findOneBy.mockResolvedValue({
+        ...restaurant,
+      });
+
+      repository.save.mockRejectedValue(duplicateError);
+
+      await expect(
+        service.update('restaurant-uuid', {
+          location: 'Chennai',
+        }),
+      ).rejects.toThrow(ConflictException);
+    });
+  });
+});
+
+
+

@@ -121,7 +121,9 @@ describe('CategoryService', () => {
     const dbError = new QueryFailedError(
       'UPDATE categories SET name = $1',
       ['Hot Starters'],
-      { code: '23505' },
+      Object.assign(new Error('Duplicate category'), {
+        code: '23505',
+      }),
     );
 
     repository.save.mockRejectedValue(dbError);
