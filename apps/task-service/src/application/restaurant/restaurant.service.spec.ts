@@ -8,6 +8,7 @@ import { QueryFailedError } from 'typeorm';
 
 import { RestaurantService } from './restaurant.service';
 import { RestaurantProvisioningService } from './restaurant-provisioning.service';
+import { CloudinaryService } from '../../infrastructure/cloudinary/cloudinary.service';
 import { Tenant } from '../../infrastructure/database/entities/tenant.entity';
 
 describe('RestaurantService', () => {
@@ -41,6 +42,11 @@ describe('RestaurantService', () => {
     cleanupDatabase: jest.Mock;
   };
 
+  let cloudinaryService: {
+    uploadImage: jest.Mock;
+    deleteImage: jest.Mock;
+  };
+
   let queryBuilder: {
     where: jest.Mock;
     andWhere: jest.Mock;
@@ -68,9 +74,15 @@ describe('RestaurantService', () => {
       cleanupDatabase: jest.fn().mockResolvedValue(undefined),
     };
 
+    cloudinaryService = {
+      uploadImage: jest.fn(),
+      deleteImage: jest.fn(),
+    };
+
     service = new RestaurantService(
       repository as never,
       provisioningService as unknown as RestaurantProvisioningService,
+      cloudinaryService as unknown as CloudinaryService,
     );
   });
 
@@ -318,6 +330,3 @@ describe('RestaurantService', () => {
     });
   });
 });
-
-
-

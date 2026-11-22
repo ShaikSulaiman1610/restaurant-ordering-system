@@ -3,6 +3,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
@@ -10,6 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { QueryFailedError, Repository } from 'typeorm';
 
 import { Tenant } from '../../infrastructure/database/entities/tenant.entity';
+import { CloudinaryService } from '../../infrastructure/cloudinary/cloudinary.service';
 import { RestaurantProvisioningService } from './restaurant-provisioning.service';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
@@ -22,6 +24,7 @@ export class RestaurantService {
     @InjectRepository(Tenant)
     private readonly restaurantRepository: Repository<Tenant>,
     private readonly provisioningService: RestaurantProvisioningService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   private isDuplicateRestaurantError(error: unknown): boolean {
@@ -166,5 +169,107 @@ export class RestaurantService {
 
       throw error;
     }
+  }
+
+  async uploadCoverImage(
+    restaurantId: string,
+    file: Express.Multer.File,
+  ): Promise<Tenant> {
+    const restaurant = await this.findOne(restaurantId);
+
+    const uploaded = await this.cloudinaryService.uploadImage(
+      file,
+      'restaurant-ordering/restaurant-covers',
+    );
+
+    const previousPublicId = restaurant.coverImagePublicId;
+
+    try {
+      const updateResult = await this.restaurantRepository
+        .createQueryBuilder()
+        .update(Tenant)
+        .set({
+          coverImageUrl: uploaded.url,
+          coverImagePublicId: uploaded.publicId,
+        })
+        .where('id = :restaurantId', { restaurantId })
+        .andWhere(
+          'cover_image_public_id IS NOT DISTINCT FROM :previousPublicId',
+          { previousPublicId },
+        )
+        .execute();
+
+      if (updateResult.affected !== 1) {
+        throw new ConflictException(
+          'Restaurant cover image was modified concurrently',
+        );
+      }
+    } catch (error: unknown) {
+      try {
+        await this.cloudinaryService.deleteImage(uploaded.publicId);
+      } catch (cleanupError: unknown) {
+        this.logger.error(
+          'Failed to clean up newly uploaded cover image',
+          cleanupError instanceof Error
+            ? cleanupError.stack
+            : String(cleanupError),
+        );
+      }
+
+      throw error;
+    }
+
+    if (previousPublicId) {
+      try {
+        await this.cloudinaryService.deleteImage(previousPublicId);
+      } catch (error: unknown) {
+        this.logger.warn(
+          `Old restaurant cover image cleanup failed: ${previousPublicId}`,
+        );
+      }
+    }
+
+    return this.findOne(restaurantId);
+  }
+
+  async deleteCoverImage(restaurantId: string): Promise<Tenant> {
+    const restaurant = await this.findOne(restaurantId);
+
+    if (!restaurant.coverImagePublicId) {
+      throw new BadRequestException(
+        'Restaurant does not have a cover image',
+      );
+    }
+
+    const previousPublicId = restaurant.coverImagePublicId;
+
+    const result = await this.restaurantRepository
+      .createQueryBuilder()
+      .update(Tenant)
+      .set({
+        coverImageUrl: null,
+        coverImagePublicId: null,
+      })
+      .where('id = :restaurantId', { restaurantId })
+      .andWhere('cover_image_public_id = :previousPublicId', {
+        previousPublicId,
+      })
+      .execute();
+
+    if (result.affected !== 1) {
+      throw new ConflictException(
+        'Restaurant cover image was modified concurrently',
+      );
+    }
+
+    try {
+      await this.cloudinaryService.deleteImage(previousPublicId);
+    } catch (error: unknown) {
+      this.logger.warn(
+        `Cover image deletion from Cloudinary failed: ${previousPublicId}`,
+      );
+    }
+
+    return this.findOne(restaurantId);
   }
 }
