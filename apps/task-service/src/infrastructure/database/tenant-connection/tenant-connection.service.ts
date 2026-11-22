@@ -16,6 +16,7 @@ import { Modifier } from '../entities/modifier/modifier.entity';
 import { Inventory } from '../entities/inventory/inventory.entity';
 import { Order } from '../entities/order/order.entity';
 import { OrderItem } from '../entities/order/order-item.entity';
+import { Payment } from '../entities/payment/payment.entity';
 
 @Injectable()
 export class TenantConnectionService implements OnModuleDestroy {
@@ -81,7 +82,7 @@ export class TenantConnectionService implements OnModuleDestroy {
       password: this.configService.getOrThrow<string>('DB_PASSWORD'),
       database: databaseName,
 
-      // Tenant-specific entities
+      // Each restaurant has its own database entities
       entities: [
         Category,
         Product,
@@ -89,9 +90,10 @@ export class TenantConnectionService implements OnModuleDestroy {
         Inventory,
         Order,
         OrderItem,
+        Payment,
       ],
 
-      // Database schema changes happen through migrations
+      // Database changes must be applied using migrations
       synchronize: false,
 
       extra: {
@@ -110,7 +112,10 @@ export class TenantConnectionService implements OnModuleDestroy {
     );
 
     for (const result of connections) {
-      if (result.status === 'fulfilled' && result.value.isInitialized) {
+      if (
+        result.status === 'fulfilled' &&
+        result.value.isInitialized
+      ) {
         await result.value.destroy();
       }
     }

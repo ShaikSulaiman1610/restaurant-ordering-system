@@ -9,12 +9,14 @@ import { Modifier } from '../apps/task-service/src/infrastructure/database/entit
 import { Inventory } from '../apps/task-service/src/infrastructure/database/entities/inventory/inventory.entity';
 import { Order } from '../apps/task-service/src/infrastructure/database/entities/order/order.entity';
 import { OrderItem } from '../apps/task-service/src/infrastructure/database/entities/order/order-item.entity';
+import { Payment } from '../apps/task-service/src/infrastructure/database/entities/payment/payment.entity';
 
 import { CreateCategories1762970000000 } from '../apps/task-service/src/infrastructure/database/migrations/1762970000000-CreateCategories';
 import { CreateProducts1763530000000 } from '../apps/task-service/src/infrastructure/database/migrations/1763530000000-CreateProducts';
 import { CreateModifiers1763700000000 } from '../apps/task-service/src/infrastructure/database/migrations/1763700000000-CreateModifiers';
 import { CreateInventories1763790000000 } from '../apps/task-service/src/infrastructure/database/migrations/1763790000000-CreateInventories';
 import { CreateOrders1763800000000 } from '../apps/task-service/src/infrastructure/database/migrations/1763800000000-CreateOrders';
+import { CreatePayments1763900000000 } from '../apps/task-service/src/infrastructure/database/migrations/1763900000000-CreatePayments';
 
 config();
 
@@ -44,6 +46,7 @@ async function main(): Promise<void> {
       Inventory,
       Order,
       OrderItem,
+      Payment,
     ],
 
     migrations: [
@@ -52,6 +55,7 @@ async function main(): Promise<void> {
       CreateModifiers1763700000000,
       CreateInventories1763790000000,
       CreateOrders1763800000000,
+      CreatePayments1763900000000,
     ],
 
     synchronize: false,
@@ -67,7 +71,9 @@ async function main(): Promise<void> {
   try {
     await dataSource.initialize();
 
-    console.log(`Connected to tenant database: ${databaseName}`);
+    console.log(
+      `Connected to tenant database: ${databaseName}`,
+    );
 
     const migrations = await dataSource.runMigrations();
 

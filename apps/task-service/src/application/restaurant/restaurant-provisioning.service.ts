@@ -14,12 +14,14 @@ import { Modifier } from '../../infrastructure/database/entities/modifier/modifi
 import { Inventory } from '../../infrastructure/database/entities/inventory/inventory.entity';
 import { Order } from '../../infrastructure/database/entities/order/order.entity';
 import { OrderItem } from '../../infrastructure/database/entities/order/order-item.entity';
+import { Payment } from '../../infrastructure/database/entities/payment/payment.entity';
 
 import { CreateCategories1762970000000 } from '../../infrastructure/database/migrations/1762970000000-CreateCategories';
 import { CreateProducts1763530000000 } from '../../infrastructure/database/migrations/1763530000000-CreateProducts';
 import { CreateModifiers1763700000000 } from '../../infrastructure/database/migrations/1763700000000-CreateModifiers';
 import { CreateInventories1763790000000 } from '../../infrastructure/database/migrations/1763790000000-CreateInventories';
 import { CreateOrders1763800000000 } from '../../infrastructure/database/migrations/1763800000000-CreateOrders';
+import { CreatePayments1763900000000 } from '../../infrastructure/database/migrations/1763900000000-CreatePayments';
 
 @Injectable()
 export class RestaurantProvisioningService {
@@ -38,10 +40,10 @@ export class RestaurantProvisioningService {
   }
 
   private validateDatabaseName(databaseName: string): void {
-    if (
-      !/^restaurant_[a-f0-9]{32}_db$/.test(databaseName)
-    ) {
-      throw new Error('Invalid generated restaurant database name');
+    if (!/^restaurant_[a-f0-9]{32}_db$/.test(databaseName)) {
+      throw new Error(
+        'Invalid generated restaurant database name',
+      );
     }
   }
 
@@ -70,7 +72,9 @@ export class RestaurantProvisioningService {
     });
   }
 
-  private createTenantConnection(databaseName: string): DataSource {
+  private createTenantConnection(
+    databaseName: string,
+  ): DataSource {
     return new DataSource({
       type: 'postgres',
       host: this.configService.getOrThrow<string>('DB_HOST'),
@@ -84,6 +88,7 @@ export class RestaurantProvisioningService {
         'DB_PASSWORD',
       ),
       database: databaseName,
+
       entities: [
         Category,
         Product,
@@ -91,16 +96,21 @@ export class RestaurantProvisioningService {
         Inventory,
         Order,
         OrderItem,
+        Payment,
       ],
+
       migrations: [
         CreateCategories1762970000000,
         CreateProducts1763530000000,
         CreateModifiers1763700000000,
         CreateInventories1763790000000,
         CreateOrders1763800000000,
+        CreatePayments1763900000000,
       ],
+
       synchronize: false,
       migrationsTransactionMode: 'all',
+
       extra: {
         max: 2,
         connectionTimeoutMillis: 5000,
@@ -109,7 +119,9 @@ export class RestaurantProvisioningService {
     });
   }
 
-  async provisionDatabase(databaseName: string): Promise<void> {
+  async provisionDatabase(
+    databaseName: string,
+  ): Promise<void> {
     this.validateDatabaseName(databaseName);
 
     const adminConnection = this.createAdminConnection();
@@ -134,6 +146,7 @@ export class RestaurantProvisioningService {
 
       try {
         await tenantConnection.initialize();
+
         await tenantConnection.runMigrations();
 
         this.logger.log(
@@ -147,7 +160,9 @@ export class RestaurantProvisioningService {
     } catch (error: unknown) {
       this.logger.error(
         `Provisioning failed for: ${databaseName}`,
-        error instanceof Error ? error.stack : String(error),
+        error instanceof Error
+          ? error.stack
+          : String(error),
       );
 
       if (databaseCreated) {
@@ -173,7 +188,9 @@ export class RestaurantProvisioningService {
     }
   }
 
-  async cleanupDatabase(databaseName: string): Promise<void> {
+  async cleanupDatabase(
+    databaseName: string,
+  ): Promise<void> {
     this.validateDatabaseName(databaseName);
 
     if (!this.createdDatabases.has(databaseName)) {
@@ -215,3 +232,4 @@ export class RestaurantProvisioningService {
     }
   }
 }
+
