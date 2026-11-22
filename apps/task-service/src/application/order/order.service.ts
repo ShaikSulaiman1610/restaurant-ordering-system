@@ -14,8 +14,13 @@ import {
   OrderStatus,
 } from '../../infrastructure/database/entities/order/order.entity';
 import { OrderItem } from '../../infrastructure/database/entities/order/order-item.entity';
+import {
+  Payment,
+  PaymentStatus,
+} from '../../infrastructure/database/entities/payment/payment.entity';
 
 import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 
 @Injectable()
 export class OrderService {
@@ -192,5 +197,111 @@ export class OrderService {
     }
 
     return order;
+  }
+
+  async updateStatus(
+    tenantId: string,
+    orderId: string,
+    dto: UpdateOrderStatusDto,
+  ): Promise<Order> {
+    const connection =
+      await this.tenantConnectionService.getConnection(tenantId);
+
+    return connection.transaction(async (manager) => {
+      const orderRepository = manager.getRepository(Order);
+      const orderItemRepository = manager.getRepository(OrderItem);
+      const inventoryRepository = manager.getRepository(Inventory);
+      const paymentRepository = manager.getRepository(Payment);
+
+      // Lock the order to prevent concurrent status changes.
+      const order = await orderRepository
+        .createQueryBuilder('order')
+        .setLock('pessimistic_write')
+        .where('order.id = :orderId', { orderId })
+        .getOne();
+
+      if (!order) {
+        throw new NotFoundException('Order not found');
+      }
+
+      const allowedTransitions: Record<
+        OrderStatus,
+        OrderStatus[]
+      > = {
+        [OrderStatus.PENDING]: [
+          OrderStatus.CONFIRMED,
+          OrderStatus.CANCELLED,
+        ],
+        [OrderStatus.CONFIRMED]: [
+          OrderStatus.PREPARING,
+          OrderStatus.CANCELLED,
+        ],
+        [OrderStatus.PREPARING]: [
+          OrderStatus.COMPLETED,
+        ],
+        [OrderStatus.COMPLETED]: [],
+        [OrderStatus.CANCELLED]: [],
+      };
+
+      const allowedStatuses = allowedTransitions[order.status];
+
+      if (!allowedStatuses?.includes(dto.status)) {
+        throw new ConflictException(
+          `Cannot change order status from ${order.status} to ${dto.status}`,
+        );
+      }
+
+      if (dto.status === OrderStatus.CANCELLED) {
+        // Paid orders need refund handling before cancellation.
+        const paidPayment = await paymentRepository.findOneBy({
+          orderId: order.id,
+          status: PaymentStatus.PAID,
+        });
+
+        if (paidPayment) {
+          throw new ConflictException(
+            'Paid orders cannot be cancelled without refund handling',
+          );
+        }
+
+        const orderItems = await orderItemRepository.find({
+          where: { orderId: order.id },
+          order: { productId: 'ASC' },
+        });
+
+        for (const item of orderItems) {
+          const inventory = await inventoryRepository
+            .createQueryBuilder('inventory')
+            .setLock('pessimistic_write')
+            .where('inventory.productId = :productId', {
+              productId: item.productId,
+            })
+            .getOne();
+
+          if (!inventory) {
+            throw new ConflictException(
+              'Inventory not found during order cancellation',
+            );
+          }
+
+          const restoredQuantity =
+            inventory.quantity + item.quantity;
+
+          if (!Number.isSafeInteger(restoredQuantity)) {
+            throw new BadRequestException(
+              'Inventory quantity exceeds supported range',
+            );
+          }
+
+          inventory.quantity = restoredQuantity;
+
+          await inventoryRepository.save(inventory);
+        }
+      }
+
+      order.status = dto.status;
+
+      return orderRepository.save(order);
+    });
   }
 }

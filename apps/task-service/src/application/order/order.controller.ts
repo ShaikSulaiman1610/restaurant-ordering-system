@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
 } from '@nestjs/common';
 
@@ -23,6 +24,7 @@ import {
 
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 
 @ApiTags('Orders')
 @ApiParam({
@@ -98,5 +100,42 @@ export class OrderController {
     @Param('orderId', ParseUUIDPipe) orderId: string,
   ) {
     return this.orderService.findOne(tenantId, orderId);
+  }
+
+  @Patch(':orderId/status')
+  @ApiOperation({
+    summary: 'Update order status',
+    description:
+      'Updates the order status using valid transitions. Cancellation restores inventory for unpaid orders.',
+  })
+  @ApiParam({
+    name: 'orderId',
+    description: 'Unique order ID (UUID)',
+    type: String,
+    format: 'uuid',
+  })
+  @ApiOkResponse({
+    description: 'Order status updated successfully.',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid order status.',
+  })
+  @ApiConflictResponse({
+    description:
+      'Invalid status transition or paid order cancellation.',
+  })
+  @ApiNotFoundResponse({
+    description: 'Order not found in this restaurant.',
+  })
+  async updateStatus(
+    @Param('tenantId', ParseUUIDPipe) tenantId: string,
+    @Param('orderId', ParseUUIDPipe) orderId: string,
+    @Body() dto: UpdateOrderStatusDto,
+  ) {
+    return this.orderService.updateStatus(
+      tenantId,
+      orderId,
+      dto,
+    );
   }
 }
