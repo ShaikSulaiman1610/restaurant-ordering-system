@@ -13,6 +13,19 @@ import { Product } from '../../infrastructure/database/entities/product/product.
 
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import {
+  ListProductsQueryDto,
+  ProductSortBy,
+  ProductSortOrder,
+} from './dto/list-products-query.dto';
+
+export interface PaginatedProducts {
+  data: Product[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
 
 @Injectable()
 export class ProductService {
@@ -46,9 +59,7 @@ export class ProductService {
       }
 
       if (code === '23505') {
-        throw new ConflictException(
-          'Product already exists',
-        );
+        throw new ConflictException('Product already exists');
       }
 
       if (code === '23514') {
@@ -88,15 +99,59 @@ export class ProductService {
     }
   }
 
-  async findAll(tenantId: string): Promise<Product[]> {
+  async findAll(
+    tenantId: string,
+    query?: ListProductsQueryDto,
+  ): Promise<Product[] | PaginatedProducts> {
     const dataSource =
       await this.tenantConnectionService.getConnection(tenantId);
 
-    return dataSource.getRepository(Product).find({
+    const repository = dataSource.getRepository(Product);
+
+    // Preserve the previous behavior for existing callers.
+    if (!query) {
+      return repository.find({
+        order: {
+          createdAt: 'DESC',
+        },
+      });
+    }
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const sortBy = query.sortBy ?? ProductSortBy.CREATED_AT;
+    const sortOrder = query.sortOrder ?? ProductSortOrder.DESC;
+
+    const where: {
+      categoryId?: string;
+      isAvailable?: boolean;
+    } = {};
+
+    if (query.categoryId !== undefined) {
+      where.categoryId = query.categoryId;
+    }
+
+    if (query.isAvailable !== undefined) {
+      where.isAvailable = query.isAvailable;
+    }
+
+    const [data, total] = await repository.findAndCount({
+      where,
       order: {
-        createdAt: 'DESC',
+        [sortBy]: sortOrder,
+        id: 'ASC',
       },
+      skip: (page - 1) * limit,
+      take: limit,
     });
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(

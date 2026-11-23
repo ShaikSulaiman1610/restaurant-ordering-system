@@ -10,6 +10,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 
 import {
@@ -27,6 +28,7 @@ import {
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { ListProductsQueryDto } from './dto/list-products-query.dto';
 
 @ApiTags('Products')
 @ApiParam({
@@ -65,17 +67,21 @@ export class ProductController {
 
   @Get()
   @ApiOperation({
-    summary: 'Get all products',
+    summary: 'List products with pagination, filtering and sorting',
     description:
-      'Returns all menu products belonging to the specified restaurant.',
+      'Returns paginated restaurant products. Supports category, availability, and sorting filters.',
   })
   @ApiOkResponse({
-    description: 'Products retrieved successfully.',
+    description: 'Paginated products retrieved successfully.',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid pagination, filtering, or sorting parameters.',
   })
   async findAll(
     @Param('tenantId', ParseUUIDPipe) tenantId: string,
+    @Query() query: ListProductsQueryDto,
   ) {
-    return this.productService.findAll(tenantId);
+    return this.productService.findAll(tenantId, query);
   }
 
   @Get(':productId')

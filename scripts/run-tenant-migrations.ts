@@ -17,6 +17,7 @@ import { CreateModifiers1763700000000 } from '../apps/task-service/src/infrastru
 import { CreateInventories1763790000000 } from '../apps/task-service/src/infrastructure/database/migrations/1763790000000-CreateInventories';
 import { CreateOrders1763800000000 } from '../apps/task-service/src/infrastructure/database/migrations/1763800000000-CreateOrders';
 import { CreatePayments1763900000000 } from '../apps/task-service/src/infrastructure/database/migrations/1763900000000-CreatePayments';
+import { AddProductListingIndexes1795393000000 } from '../apps/task-service/src/infrastructure/database/migrations/1795393000000-AddProductListingIndexes';
 
 config();
 
@@ -56,6 +57,7 @@ async function main(): Promise<void> {
       CreateInventories1763790000000,
       CreateOrders1763800000000,
       CreatePayments1763900000000,
+      AddProductListingIndexes1795393000000,
     ],
 
     synchronize: false,

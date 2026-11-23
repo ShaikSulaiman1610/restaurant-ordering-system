@@ -169,7 +169,7 @@ describeIntegration('RestaurantProvisioningService Integration', () => {
           'SELECT COUNT(*)::text AS count FROM migrations',
         );
 
-      expect(Number(migrations[0]?.count)).toBe(6);
+      expect(Number(migrations[0]?.count)).toBe(7);
     } finally {
       if (tenantConnection.isInitialized) {
         await tenantConnection.destroy();
@@ -185,3 +185,4 @@ describeIntegration('RestaurantProvisioningService Integration', () => {
     expect(await databaseExists()).toBe(false);
   });
 });
+
