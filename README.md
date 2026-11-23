@@ -1,22 +1,24 @@
-﻿# Restaurant Ordering & Menu Management System
+﻿
+# Restaurant Ordering & Menu Management System
 
 A multi-tenant restaurant management backend built with **NestJS, TypeScript, PostgreSQL, and TypeORM**.
 
-The application manages restaurant registration, menu categories, products, modifiers, inventory, orders, and simulated payments.
+The system manages restaurant registration, authentication, menu categories, products, modifiers, inventory, orders, and simulated payments.
 
 ## 1. Project Status
 
-**Development progress:** Day 13 completed.
+**Development progress:** Day 16 completed.
 
 **Latest verified results:**
-- 154 automated tests passed.
-- 18 test suites passed.
+- 157 automated tests passed across 18 test suites.
 - PostgreSQL integration tests passed.
-- TypeScript validation passed.
 - NestJS application build successful.
-- Swagger API documentation verified.
+- JWT authentication and restaurant OWNER membership verified.
+- Swagger API documentation available.
+- Local API performance benchmark completed.
+- PostgreSQL connection pooling configuration reviewed.
 
-Production deployment and additional security hardening remain future work.
+Production deployment and complete tenant-level authorization remain future work.
 
 ## 2. Technology Stack
 
@@ -28,7 +30,9 @@ Production deployment and additional security hardening remain future work.
 | TypeORM | Database access and migrations |
 | Jest | Unit and integration testing |
 | Swagger | API documentation |
-| Cloudinary | Restaurant image storage |
+| Cloudinary | Restaurant cover image storage |
+| JWT and bcrypt | Authentication and password hashing |
+| Node.js | Backend runtime and performance testing |
 | Git and GitHub | Version control |
 
 ## 3. Architecture
@@ -42,51 +46,52 @@ HTTP Client
 NestJS Controller
     |
     v
-Business Service
-    |
-    v
-TenantConnectionService
-    |
-    v
-Restaurant Registry
+Application Service
     |
     +--------------------+
     |                    |
     v                    v
-Restaurant A DB     Restaurant B DB
-    |                    |
-    v                    v
-Restaurant Data      Restaurant Data
+Registry Database    Tenant Connection Service
+                         |
+                         v
+                 Restaurant Database
 ```
 
 ### Multi-Tenant Design
 
-- A central restaurant registry stores restaurant information and database mappings.
-- Each restaurant has its own PostgreSQL database.
+- A central PostgreSQL registry stores restaurant information, users, and restaurant memberships.
+- Each restaurant has a separate PostgreSQL database.
 - Tenant-aware services resolve the appropriate database connection.
 - Tenant databases use TypeORM migrations.
-- Database connections are cached for reuse.
-- PostgreSQL connection pooling is configured.
+- Database connections are reused through connection management and pooling.
+- Restaurant registration automatically provisions the restaurant database.
 
-Database isolation is implemented, but complete tenant authorization and production security require further review.
+Database isolation is implemented, but complete tenant-level authorization requires further work.
 
 ## 4. Implemented Features
 
+### Authentication
+
+- User registration.
+- Password hashing using bcrypt.
+- User login using JWT.
+- Protected user profile endpoint.
+- JWT-protected restaurant creation.
+- Automatic OWNER membership for the restaurant creator.
+- Registry transaction for restaurant and OWNER membership creation.
+
 ### Restaurant Management
 
-- Restaurant registration.
-- Restaurant information retrieval.
-- Automatic tenant database provisioning.
-- Database migrations during provisioning.
-- Cleanup handling for failed registration.
-- Restaurant cover image integration using Cloudinary.
+- Register restaurants.
+- Retrieve and update restaurant details.
+- Automatically provision tenant databases.
+- Run migrations during provisioning.
+- Handle failed registration cleanup.
+- Upload, replace, and delete restaurant cover images using Cloudinary.
 
 ### Category Management
 
-- Create categories.
-- Retrieve categories.
-- Update categories.
-- Delete categories.
+- Create, retrieve, update, and delete categories.
 - Prevent duplicate category names.
 - Validate incoming requests.
 
@@ -101,36 +106,33 @@ Database isolation is implemented, but complete tenant authorization and product
 
 - Manage product modifiers.
 - Associate modifiers with menu products.
-- Support modifier-related ordering functionality.
 
 ### Inventory Management
 
 - Track product inventory.
 - Validate available stock.
 - Update inventory during order processing.
-- Restore inventory when eligible orders are cancelled.
+- Restore inventory during eligible cancellations.
 - Use database transactions for consistency.
 
 ### Order Management
 
-- Create orders.
-- Calculate order totals on the server.
+- Create orders containing multiple items.
+- Calculate totals on the server.
 - Store order item information.
 - Track order status.
-- Validate allowed status transitions.
-- Prevent invalid cancellation scenarios.
-- Protect inventory changes using database transactions.
+- Validate status transitions.
+- Protect inventory changes using transactions.
 
 ### Payment Management
 
-- Simulated payment processing.
+- Simulate payment processing.
 - Track payment status.
-- Handle payment failures.
-- Support payment retries.
+- Handle failed payments and retries.
 - Prevent duplicate successful payments.
-- Protect payment and cancellation operations against concurrency conflicts.
+- Test concurrent payment and cancellation scenarios.
 
-Payment processing is simulated; no real payment gateway is integrated.
+Payment processing is simulated. No real payment gateway is integrated.
 
 ## 5. API Documentation
 
@@ -146,29 +148,73 @@ Swagger JSON:
 http://localhost:3000/api/docs-json
 ```
 
-Documented API groups include:
+### Authentication Endpoints
 
-- Restaurants
-- Categories
-- Products
-- Modifiers
-- Inventory
-- Orders
-- Payments
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/auth/register` | Register a user |
+| POST | `/auth/login` | Log in and receive JWT |
+| GET | `/auth/me` | Retrieve authenticated user |
 
-### Example Payment API Paths
+### Restaurant Endpoints
 
-```text
-/tenants/{tenantId}/payments
-/tenants/{tenantId}/payments/orders/{orderId}
-/tenants/{tenantId}/payments/{paymentId}
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/restaurants` | Create a restaurant (JWT required) |
+| GET | `/restaurants` | List restaurants |
+| GET | `/restaurants/{id}` | Get restaurant details |
+| PATCH | `/restaurants/{id}` | Update restaurant |
+| POST | `/restaurants/{id}/cover-image` | Upload cover image |
+| DELETE | `/restaurants/{id}/cover-image` | Delete cover image |
+
+Other API groups include categories, products, modifiers, inventory, orders, and payments.
+
+Refer to Swagger for request DTOs, parameters, and documented responses.
+
+### Example: Register User
+
+```http
+POST /auth/register
+Content-Type: application/json
+
+{
+  "email": "owner@example.com",
+  "password": "StrongPassword123!"
+}
 ```
 
-Refer to Swagger for the available HTTP methods, request bodies, parameters, and responses.
+### Example: Login
+
+```http
+POST /auth/login
+Content-Type: application/json
+
+{
+  "email": "owner@example.com",
+  "password": "StrongPassword123!"
+}
+```
+
+Successful login returns an `accessToken` and `tokenType`.
+
+### Example: Create Restaurant
+
+```http
+POST /restaurants
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+
+{
+  "restaurantName": "Example Kitchen",
+  "location": "Madurai"
+}
+```
+
+Successful restaurant creation also creates an OWNER membership for the authenticated user.
 
 ## 6. Input Validation
 
-The application uses a global NestJS `ValidationPipe`.
+The application uses NestJS DTO validation and a global `ValidationPipe`.
 
 ```typescript
 app.useGlobalPipes(
@@ -180,9 +226,7 @@ app.useGlobalPipes(
 );
 ```
 
-This configuration rejects unexpected request properties and enables DTO-based input validation.
-
-An invalid order request containing an unexpected field and an empty items array was verified to return HTTP 400.
+This configuration rejects unexpected request properties and supports DTO-based validation.
 
 ## 7. Local Development
 
@@ -191,8 +235,8 @@ An invalid order request containing an unexpected field and an empty items array
 - Node.js and npm
 - PostgreSQL
 - Git
-- VS Code or another code editor
-- Required environment variables and database credentials
+- Required environment variables
+- Cloudinary credentials for image uploads
 
 ### Clone Repository
 
@@ -209,11 +253,17 @@ npm install
 
 ### Configure Environment
 
-Create a local `.env` file with the PostgreSQL and other required application settings.
+Create a local `.env` file containing the application's required PostgreSQL, JWT, and Cloudinary configuration.
 
-Use the actual environment configuration expected by the application.
+Ensure PostgreSQL is running and the registry database is available.
 
-**Never commit database passwords, Cloudinary credentials, or other secrets.**
+Never commit `.env`, database passwords, JWT secrets, or Cloudinary credentials.
+
+### Run Registry Migrations
+
+```bash
+npx ts-node --project tsconfig.json scripts/run-registry-migrations.ts
+```
 
 ### Start Backend
 
@@ -227,45 +277,53 @@ Default local API address:
 http://localhost:3000
 ```
 
+Swagger documentation:
+
+```text
+http://localhost:3000/api/docs
+```
+
 ## 8. Testing
 
-### Run Automated Tests
+### Unit Tests
 
 ```powershell
 npm test -- --runInBand
 ```
 
-### Run Tests Including PostgreSQL Integration Tests
+### PostgreSQL Integration Tests
 
 ```powershell
 $env:RUN_DB_INTEGRATION_TESTS="true"; npm test -- --runInBand
 ```
 
-PostgreSQL must be running and configured for integration tests.
+PostgreSQL must be running and correctly configured.
 
-### Latest Verified Test Results
+### Latest Verified Results
 
 ```text
 Test Suites: 18 passed, 18 total
-Tests:       154 passed, 154 total
+Tests:       157 passed, 157 total
 Snapshots:   0 total
 ```
 
-### Integration Test Coverage
+Test coverage includes:
 
-- Restaurant database provisioning.
-- Tenant database migrations.
-- Concurrent payment processing.
-- Payment and order cancellation race conditions.
+- Restaurant controllers and services
+- Restaurant database provisioning
+- Categories and products
+- Modifiers and inventory
+- Orders and order status
+- Simulated payments
+- Payment concurrency
+- PostgreSQL integration scenarios
 
-Integration tests create temporary PostgreSQL databases and clean them up after execution.
-
-## 9. TypeScript and Build Validation
+## 9. Build Validation
 
 ### TypeScript Check
 
 ```powershell
-npx tsc --project tsconfig.spec.json --noEmit
+npx tsc --project apps/task-service/tsconfig.app.json --noEmit
 ```
 
 ### NestJS Build
@@ -277,63 +335,117 @@ npx nest build task-service
 Latest verified build:
 
 ```text
-Rspack 2.3.2 compiled successfully in 5.80 s
+Rspack 2.3.2 compiled successfully
 ```
 
-## 10. Database Reliability
+## 10. PostgreSQL Connection Pooling
+
+The application uses PostgreSQL connection pooling through TypeORM.
+
+| Connection Type | Maximum Pool Size |
+|---|---:|
+| Registry database | 10 |
+| Tenant database | 5 |
+| Provisioning initial connection | 1 |
+| Provisioning migration connection | 2 |
+
+Configured connection timeout: **5 seconds**.
+
+Configured idle timeout: **30 seconds**.
+
+The minimum pool size is not explicitly configured.
+
+For configuration details, monitoring, capacity planning, and PgBouncer considerations, see:
+
+[PostgreSQL Connection Pooling](docs/connection-pooling.md)
+
+## 11. Performance Testing
+
+A Node.js performance testing script is available at:
+
+`scripts/performance/load-test.mjs`
+
+Run:
+
+```bash
+node scripts/performance/load-test.mjs
+```
+
+### Recorded Local Benchmark
+
+Endpoint: `GET /restaurants`
+
+| Metric | Result |
+|---|---:|
+| Total requests | 100 |
+| Concurrency | 10 |
+| Successful requests | 100 |
+| Failed requests | 0 |
+| Throughput | 265.17 requests/second |
+| Average latency | 31.16 ms |
+| P50 latency | 11.84 ms |
+| P95 latency | 213.50 ms |
+| P99 latency | 251.28 ms |
+
+Full benchmark output:
+
+[Performance Results](docs/performance-results.txt)
+
+These are local development measurements, not production performance guarantees.
+
+## 12. Database Reliability
 
 The project uses:
 
-- TypeORM entities and migrations.
-- PostgreSQL database constraints.
+- PostgreSQL constraints and indexes.
+- TypeORM migrations.
 - Database transactions.
 - Pessimistic locking where required.
 - Tenant-specific database connections.
 - Connection pooling.
-- Unique constraints to prevent duplicate successful payments.
+- Unique constraints for payment consistency.
+- Registry transactions for restaurant and OWNER membership creation.
 
-These mechanisms help maintain consistency during concurrent operations.
+These mechanisms help maintain data consistency during concurrent operations.
 
-## 11. Development Documentation
+## 13. Development Documentation
 
-Detailed development reports are available in the `docs/` directory.
+Detailed development reports are available in `docs/`.
 
-| Day | Documentation |
-|---|---|
-| 1 | [Day 1](docs/day-01.md) |
-| 2 | [Day 2](docs/day-02.md) |
-| 3 | [Day 3](docs/day-03.md) |
-| 4 | [Day 4](docs/day-04.md) |
-| 5 | [Day 5](docs/day-05.md) |
-| 6 | [Day 6](docs/day-06.md) |
-| 7 | [Day 7](docs/day-07.md) |
-| 8 | [Day 8](docs/day-08.md) |
-| 9 | [Day 9](docs/day-09.md) |
-| 10 | [Day 10](docs/day-10.md) |
-| 11 | [Day 11](docs/day-11.md) |
-| 12 | [Day 12](docs/day-12.md) |
-| 13 | [Day 13](docs/day-13.md) |
+- [Day 1](docs/day-01.md)
+- [Day 2](docs/day-02.md)
+- [Day 3](docs/day-03.md)
+- [Day 4](docs/day-04.md)
+- [Day 5](docs/day-05.md)
+- [Day 6](docs/day-06.md)
+- [Day 7](docs/day-07.md)
+- [Day 8](docs/day-08.md)
+- [Day 9](docs/day-09.md)
+- [Day 10](docs/day-10.md)
+- [Day 11](docs/day-11.md)
+- [Day 12](docs/day-12.md)
+- [Day 13](docs/day-13.md)
 
-## 12. Remaining Work
+Additional documentation:
 
-The following areas require additional implementation, verification, or review:
+- [Connection Pooling](docs/connection-pooling.md)
+- [Performance Results](docs/performance-results.txt)
 
-- Authentication and authorization.
+## 14. Known Limitations and Future Work
+
+- Complete tenant-level authorization and role enforcement.
 - Production security hardening.
 - Rate limiting and CORS review.
-- Load and performance testing.
 - Production deployment.
-- Monitoring and operational readiness.
-- Further review of requirements and documentation.
+- Production monitoring and operational readiness.
+- Larger-scale performance and stress testing.
 
-## 13. Repository
+## 15. Repository
 
-**GitHub:** https://github.com/ShaikSulaiman1610/restaurant-ordering-system
+GitHub: https://github.com/ShaikSulaiman1610/restaurant-ordering-system
 
-**Main branch:** `main`
-
-**Latest verified commit before this README update:** `c7e283b`
+Branch: `main`
 
 ---
 
-Built as a backend technical assignment and learning project using NestJS, TypeScript, PostgreSQL, and TypeORM.
+Built as a backend technical assignment using NestJS, TypeScript, PostgreSQL, and TypeORM.
