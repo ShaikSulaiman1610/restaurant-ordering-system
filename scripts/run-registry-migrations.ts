@@ -7,6 +7,8 @@ import { Tenant } from '../apps/task-service/src/infrastructure/database/entitie
 
 import { AddRestaurantDetails1763900000000 } from '../apps/task-service/src/infrastructure/database/registry-migrations/1763900000000-AddRestaurantDetails';
 
+import { CreateAuthTables1795392000000 } from '../apps/task-service/src/infrastructure/database/registry-migrations/1795392000000-CreateAuthTables';
+
 config();
 
 async function main(): Promise<void> {
@@ -37,6 +39,7 @@ async function main(): Promise<void> {
 
     migrations: [
       AddRestaurantDetails1763900000000,
+      CreateAuthTables1795392000000,
     ],
 
     synchronize: false,

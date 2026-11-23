@@ -7,8 +7,11 @@ import { TaskServiceController } from './task-service.controller';
 import { TaskServiceService } from './task-service.service';
 
 import { Tenant } from './infrastructure/database/entities/tenant.entity';
+import { User } from './infrastructure/database/entities/user.entity';
+import { RestaurantMembership } from './infrastructure/database/entities/restaurant-membership.entity';
 import { TenantDatabaseModule } from './infrastructure/database/tenant-database.module';
 
+import { AuthModule } from './application/auth/auth.module';
 import { CategoryModule } from './application/category/category.module';
 import { ProductModule } from './application/product/product.module';
 import { ModifierModule } from './application/modifier/modifier.module';
@@ -34,7 +37,12 @@ import { PaymentModule } from './application/payment/payment.module';
         password: configService.getOrThrow<string>('DB_PASSWORD'),
         database: configService.getOrThrow<string>('DB_REGISTRY_NAME'),
 
-        entities: [Tenant],
+        entities: [
+          Tenant,
+          User,
+          RestaurantMembership,
+        ],
+
         synchronize: false,
 
         extra: {
@@ -45,8 +53,13 @@ import { PaymentModule } from './application/payment/payment.module';
       }),
     }),
 
-    TypeOrmModule.forFeature([Tenant]),
+    TypeOrmModule.forFeature([
+      Tenant,
+      User,
+      RestaurantMembership,
+    ]),
 
+    AuthModule,
     TenantDatabaseModule,
     CategoryModule,
     ProductModule,

@@ -4,16 +4,22 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
-import { QueryFailedError } from 'typeorm';
+import { DataSource, QueryFailedError } from 'typeorm';
 
 import { RestaurantService } from './restaurant.service';
 import { RestaurantProvisioningService } from './restaurant-provisioning.service';
 import { CloudinaryService } from '../../infrastructure/cloudinary/cloudinary.service';
 import { Tenant } from '../../infrastructure/database/entities/tenant.entity';
+import {
+  RestaurantMembership,
+  RestaurantRole,
+} from '../../infrastructure/database/entities/restaurant-membership.entity';
 
 describe('RestaurantService', () => {
   const databaseName =
     'restaurant_1234567890abcdef1234567890abcdef_db';
+
+  const userId = 'user-uuid';
 
   const restaurant = {
     id: 'restaurant-uuid',
@@ -53,6 +59,23 @@ describe('RestaurantService', () => {
     getOne: jest.Mock;
   };
 
+  let tenantTransactionRepository: {
+    save: jest.Mock;
+  };
+
+  let membershipTransactionRepository: {
+    create: jest.Mock;
+    save: jest.Mock;
+  };
+
+  let transactionManager: {
+    getRepository: jest.Mock;
+  };
+
+  let dataSource: {
+    transaction: jest.Mock;
+  };
+
   beforeEach(() => {
     queryBuilder = {
       where: jest.fn().mockReturnThis(),
@@ -79,19 +102,52 @@ describe('RestaurantService', () => {
       deleteImage: jest.fn(),
     };
 
+    tenantTransactionRepository = {
+      save: jest.fn().mockResolvedValue(restaurant),
+    };
+
+    membershipTransactionRepository = {
+      create: jest.fn().mockImplementation((data) => data),
+      save: jest.fn().mockImplementation(async (data) => data),
+    };
+
+    transactionManager = {
+      getRepository: jest.fn().mockImplementation((entity) => {
+        if (entity === Tenant) {
+          return tenantTransactionRepository;
+        }
+
+        if (entity === RestaurantMembership) {
+          return membershipTransactionRepository;
+        }
+
+        throw new Error('Unexpected entity in transaction');
+      }),
+    };
+
+    dataSource = {
+      transaction: jest.fn().mockImplementation(
+        async (callback) => callback(transactionManager),
+      ),
+    };
+
     service = new RestaurantService(
       repository as never,
       provisioningService as unknown as RestaurantProvisioningService,
       cloudinaryService as unknown as CloudinaryService,
+      dataSource as unknown as DataSource,
     );
   });
 
   describe('create', () => {
     it('creates a restaurant with its own database', async () => {
-      const result = await service.create({
-        restaurantName: ' Spice Garden ',
-        location: ' Madurai ',
-      });
+      const result = await service.create(
+        {
+          restaurantName: ' Spice Garden ',
+          location: ' Madurai ',
+        },
+        userId,
+      );
 
       expect(result).toEqual(restaurant);
 
@@ -111,15 +167,36 @@ describe('RestaurantService', () => {
         }),
       );
 
-      expect(repository.save).toHaveBeenCalledTimes(1);
+      expect(dataSource.transaction).toHaveBeenCalledTimes(1);
+
+      expect(
+        tenantTransactionRepository.save,
+      ).toHaveBeenCalledTimes(1);
+
+      expect(
+        membershipTransactionRepository.create,
+      ).toHaveBeenCalledWith({
+        userId,
+        restaurantId: restaurant.id,
+        role: RestaurantRole.OWNER,
+      });
+
+      expect(
+        membershipTransactionRepository.save,
+      ).toHaveBeenCalledTimes(1);
+
+      expect(repository.save).not.toHaveBeenCalled();
     });
 
     it('rejects an empty restaurant name', async () => {
       await expect(
-        service.create({
-          restaurantName: '   ',
-          location: 'Madurai',
-        }),
+        service.create(
+          {
+            restaurantName: '   ',
+            location: 'Madurai',
+          },
+          userId,
+        ),
       ).rejects.toThrow(BadRequestException);
 
       expect(
@@ -129,10 +206,13 @@ describe('RestaurantService', () => {
 
     it('rejects an empty location', async () => {
       await expect(
-        service.create({
-          restaurantName: 'Spice Garden',
-          location: '   ',
-        }),
+        service.create(
+          {
+            restaurantName: 'Spice Garden',
+            location: '   ',
+          },
+          userId,
+        ),
       ).rejects.toThrow(BadRequestException);
 
       expect(
@@ -144,10 +224,13 @@ describe('RestaurantService', () => {
       queryBuilder.getOne.mockResolvedValue(restaurant);
 
       await expect(
-        service.create({
-          restaurantName: 'Spice Garden',
-          location: 'Madurai',
-        }),
+        service.create(
+          {
+            restaurantName: 'Spice Garden',
+            location: 'Madurai',
+          },
+          userId,
+        ),
       ).rejects.toThrow(ConflictException);
 
       expect(
@@ -161,34 +244,44 @@ describe('RestaurantService', () => {
       );
 
       await expect(
-        service.create({
-          restaurantName: 'Spice Garden',
-          location: 'Madurai',
-        }),
+        service.create(
+          {
+            restaurantName: 'Spice Garden',
+            location: 'Madurai',
+          },
+          userId,
+        ),
       ).rejects.toThrow('Database creation failed');
 
-      expect(repository.save).not.toHaveBeenCalled();
+      expect(dataSource.transaction).not.toHaveBeenCalled();
     });
 
     it('cleans up when registry save fails', async () => {
-      repository.save.mockRejectedValue(
+      tenantTransactionRepository.save.mockRejectedValue(
         new Error('Registry unavailable'),
       );
 
       await expect(
-        service.create({
-          restaurantName: 'Spice Garden',
-          location: 'Madurai',
-        }),
+        service.create(
+          {
+            restaurantName: 'Spice Garden',
+            location: 'Madurai',
+          },
+          userId,
+        ),
       ).rejects.toThrow('Registry unavailable');
 
       expect(
         provisioningService.cleanupDatabase,
       ).toHaveBeenCalledWith(databaseName);
+
+      expect(
+        membershipTransactionRepository.save,
+      ).not.toHaveBeenCalled();
     });
 
     it('preserves the original error if cleanup also fails', async () => {
-      repository.save.mockRejectedValue(
+      tenantTransactionRepository.save.mockRejectedValue(
         new Error('Registry unavailable'),
       );
 
@@ -197,10 +290,13 @@ describe('RestaurantService', () => {
       );
 
       await expect(
-        service.create({
-          restaurantName: 'Spice Garden',
-          location: 'Madurai',
-        }),
+        service.create(
+          {
+            restaurantName: 'Spice Garden',
+            location: 'Madurai',
+          },
+          userId,
+        ),
       ).rejects.toThrow('Registry unavailable');
 
       expect(
@@ -218,18 +314,99 @@ describe('RestaurantService', () => {
         }),
       );
 
-      repository.save.mockRejectedValue(duplicateError);
+      tenantTransactionRepository.save.mockRejectedValue(
+        duplicateError,
+      );
 
       await expect(
-        service.create({
-          restaurantName: 'Spice Garden',
-          location: 'Madurai',
-        }),
+        service.create(
+          {
+            restaurantName: 'Spice Garden',
+            location: 'Madurai',
+          },
+          userId,
+        ),
       ).rejects.toThrow(ConflictException);
 
       expect(
         provisioningService.cleanupDatabase,
       ).toHaveBeenCalledWith(databaseName);
+    });
+
+    it('creates OWNER membership for the authenticated user', async () => {
+      await service.create(
+        {
+          restaurantName: 'Spice Garden',
+          location: 'Madurai',
+        },
+        userId,
+      );
+
+      expect(
+        membershipTransactionRepository.create,
+      ).toHaveBeenCalledWith({
+        userId,
+        restaurantId: restaurant.id,
+        role: RestaurantRole.OWNER,
+      });
+
+      expect(
+        membershipTransactionRepository.save,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId,
+          restaurantId: restaurant.id,
+          role: RestaurantRole.OWNER,
+        }),
+      );
+    });
+
+    it('cleans up the provisioned database when membership save fails', async () => {
+      membershipTransactionRepository.save.mockRejectedValue(
+        new Error('Membership save failed'),
+      );
+
+      await expect(
+        service.create(
+          {
+            restaurantName: 'Spice Garden',
+            location: 'Madurai',
+          },
+          userId,
+        ),
+      ).rejects.toThrow('Membership save failed');
+
+      expect(
+        tenantTransactionRepository.save,
+      ).toHaveBeenCalledTimes(1);
+
+      expect(
+        provisioningService.cleanupDatabase,
+      ).toHaveBeenCalledWith(databaseName);
+    });
+
+    it('does not create membership when restaurant save fails', async () => {
+      tenantTransactionRepository.save.mockRejectedValue(
+        new Error('Restaurant insert failed'),
+      );
+
+      await expect(
+        service.create(
+          {
+            restaurantName: 'Spice Garden',
+            location: 'Madurai',
+          },
+          userId,
+        ),
+      ).rejects.toThrow('Restaurant insert failed');
+
+      expect(
+        membershipTransactionRepository.create,
+      ).not.toHaveBeenCalled();
+
+      expect(
+        membershipTransactionRepository.save,
+      ).not.toHaveBeenCalled();
     });
   });
 

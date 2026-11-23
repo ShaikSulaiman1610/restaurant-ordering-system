@@ -3,14 +3,17 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
-  InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { QueryFailedError, Repository } from 'typeorm';
+import { DataSource, QueryFailedError, Repository } from 'typeorm';
 
 import { Tenant } from '../../infrastructure/database/entities/tenant.entity';
+import {
+  RestaurantMembership,
+  RestaurantRole,
+} from '../../infrastructure/database/entities/restaurant-membership.entity';
 import { CloudinaryService } from '../../infrastructure/cloudinary/cloudinary.service';
 import { RestaurantProvisioningService } from './restaurant-provisioning.service';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
@@ -25,6 +28,7 @@ export class RestaurantService {
     private readonly restaurantRepository: Repository<Tenant>,
     private readonly provisioningService: RestaurantProvisioningService,
     private readonly cloudinaryService: CloudinaryService,
+    private readonly dataSource: DataSource,
   ) {}
 
   private isDuplicateRestaurantError(error: unknown): boolean {
@@ -43,7 +47,10 @@ export class RestaurantService {
     );
   }
 
-  async create(dto: CreateRestaurantDto): Promise<Tenant> {
+  async create(
+    dto: CreateRestaurantDto,
+    userId: string,
+  ): Promise<Tenant> {
     const restaurantName = dto.restaurantName.trim();
     const location = dto.location.trim();
 
@@ -85,13 +92,33 @@ export class RestaurantService {
     });
 
     try {
-      return await this.restaurantRepository.save(restaurant);
+      return await this.dataSource.transaction(
+        async (manager): Promise<Tenant> => {
+          const savedRestaurant = await manager
+            .getRepository(Tenant)
+            .save(restaurant);
+
+          const membership = manager
+            .getRepository(RestaurantMembership)
+            .create({
+              userId,
+              restaurantId: savedRestaurant.id,
+              role: RestaurantRole.OWNER,
+            });
+
+          await manager
+            .getRepository(RestaurantMembership)
+            .save(membership);
+
+          return savedRestaurant;
+        },
+      );
     } catch (error: unknown) {
       try {
         await this.provisioningService.cleanupDatabase(databaseName);
       } catch (cleanupError: unknown) {
         this.logger.error(
-          `Registry save failed; database cleanup also failed: ${databaseName}`,
+          `Registry transaction failed; database cleanup also failed: ${databaseName}`,
           cleanupError instanceof Error
             ? cleanupError.stack
             : String(cleanupError),

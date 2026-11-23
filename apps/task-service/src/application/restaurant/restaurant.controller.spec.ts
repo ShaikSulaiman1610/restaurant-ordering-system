@@ -2,6 +2,7 @@
 import { RestaurantController } from './restaurant.controller';
 import { RestaurantService } from './restaurant.service';
 import { Tenant } from '../../infrastructure/database/entities/tenant.entity';
+import type { AuthenticatedRequest } from '../auth/jwt-auth.guard';
 
 describe('RestaurantController', () => {
   let controller: RestaurantController;
@@ -12,6 +13,8 @@ describe('RestaurantController', () => {
     findOne: jest.Mock;
     update: jest.Mock;
   };
+
+  const userId = 'e61b0677-3738-4eb7-a4d6-f04ff47d7c36';
 
   const restaurant = {
     id: 'd6570f55-1a96-4f3d-a408-e1f99a49a7c7',
@@ -37,22 +40,36 @@ describe('RestaurantController', () => {
     );
   });
 
-  it('registers a restaurant', async () => {
+  it('registers a restaurant for the authenticated user', async () => {
     const dto = {
       restaurantName: 'Spice Garden',
       location: 'Madurai',
     };
 
-    const result = await controller.create(dto);
+    const request = {
+      user: {
+        id: userId,
+        email: 'auth-test-01@example.com',
+      },
+    } as AuthenticatedRequest;
+
+    const result = await controller.create(dto, request);
 
     expect(result).toEqual(restaurant);
-    expect(restaurantService.create).toHaveBeenCalledWith(dto);
+
+    expect(restaurantService.create).toHaveBeenCalledWith(
+      dto,
+      userId,
+    );
+
+    expect(restaurantService.create).toHaveBeenCalledTimes(1);
   });
 
   it('lists all restaurants', async () => {
     const result = await controller.findAll();
 
     expect(result).toEqual([restaurant]);
+
     expect(restaurantService.findAll).toHaveBeenCalledTimes(1);
   });
 
@@ -60,6 +77,7 @@ describe('RestaurantController', () => {
     const result = await controller.findOne(restaurant.id);
 
     expect(result).toEqual(restaurant);
+
     expect(restaurantService.findOne).toHaveBeenCalledWith(
       restaurant.id,
     );
@@ -74,6 +92,7 @@ describe('RestaurantController', () => {
     const result = await controller.update(restaurant.id, dto);
 
     expect(result).toEqual(restaurant);
+
     expect(restaurantService.update).toHaveBeenCalledWith(
       restaurant.id,
       dto,
