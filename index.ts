@@ -47,6 +47,20 @@ async function bootstrap(): Promise<void> {
     'api/docs',
     app,
     swaggerDocument,
+    {
+      customSiteTitle: 'Restaurant Ordering API',
+
+      customCssUrl:
+        'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14/swagger-ui.css',
+
+      customJs: [
+        'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14/swagger-ui-bundle.js',
+        'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14/swagger-ui-standalone-preset.js',
+      ],
+
+      customfavIcon:
+        'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14/favicon-32x32.png',
+    },
   );
 
   await app.listen(process.env.PORT ?? 3000);
