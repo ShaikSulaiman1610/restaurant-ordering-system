@@ -10,6 +10,7 @@ import {
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 
 import {
@@ -22,12 +23,18 @@ import {
   ApiBadRequestResponse,
   ApiNotFoundResponse,
   ApiConflictResponse,
+  ApiBearerAuth,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
 } from '@nestjs/swagger';
 
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from '../../infrastructure/database/entities/category/category.entity';
+
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { TenantAuthorizationGuard } from '../auth/tenant-authorization.guard';
 
 @ApiTags('Categories')
 @ApiParam({
@@ -43,6 +50,14 @@ export class CategoryController {
   ) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, TenantAuthorizationGuard)
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse({
+    description: 'Authentication required.',
+  })
+  @ApiForbiddenResponse({
+    description: 'Restaurant access denied.',
+  })
   @ApiOperation({
     summary: 'Create a new category',
     description: 'Creates a menu category for the specified restaurant.',
@@ -101,6 +116,14 @@ export class CategoryController {
   }
 
   @Patch(':categoryId')
+  @UseGuards(JwtAuthGuard, TenantAuthorizationGuard)
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse({
+    description: 'Authentication required.',
+  })
+  @ApiForbiddenResponse({
+    description: 'Restaurant access denied.',
+  })
   @ApiOperation({
     summary: 'Update a category',
     description: 'Updates an existing restaurant menu category.',
@@ -133,6 +156,14 @@ export class CategoryController {
   }
 
   @Delete(':categoryId')
+  @UseGuards(JwtAuthGuard, TenantAuthorizationGuard)
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse({
+    description: 'Authentication required.',
+  })
+  @ApiForbiddenResponse({
+    description: 'Restaurant access denied.',
+  })
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Delete a category',
