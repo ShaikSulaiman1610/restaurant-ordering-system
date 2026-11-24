@@ -1,10 +1,10 @@
 
 import { Module } from '@nestjs/common';
 
-import { TenantDatabaseModule } from '../../infrastructure/database/tenant-database.module';
+import { TenantDatabaseModule } from '../../infrastructure/database/tenant-database.module.js';
 
-import { PaymentController } from './payment.controller';
-import { PaymentService } from './payment.service';
+import { PaymentController } from './payment.controller.js';
+import { PaymentService } from './payment.service.js';
 
 @Module({
   imports: [TenantDatabaseModule],

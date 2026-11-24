@@ -24,10 +24,10 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { InventoryService } from './inventory.service';
-import { CreateInventoryDto } from './dto/create-inventory.dto';
-import { UpdateInventoryDto } from './dto/update-inventory.dto';
-import { Inventory } from '../../infrastructure/database/entities/inventory/inventory.entity';
+import { InventoryService } from './inventory.service.js';
+import { CreateInventoryDto } from './dto/create-inventory.dto.js';
+import { UpdateInventoryDto } from './dto/update-inventory.dto.js';
+import { Inventory } from '../../infrastructure/database/entities/inventory/inventory.entity.js';
 
 @ApiTags('Inventory')
 @ApiParam({

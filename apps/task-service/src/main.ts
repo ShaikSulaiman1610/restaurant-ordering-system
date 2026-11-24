@@ -6,7 +6,7 @@ import {
   SwaggerModule,
 } from '@nestjs/swagger';
 
-import { TaskServiceModule } from './task-service.module';
+import { TaskServiceModule } from './task-service.module.js';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(TaskServiceModule);

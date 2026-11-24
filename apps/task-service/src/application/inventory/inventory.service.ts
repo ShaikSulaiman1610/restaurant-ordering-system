@@ -7,12 +7,12 @@ import {
 } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
 
-import { TenantConnectionService } from '../../infrastructure/database/tenant-connection/tenant-connection.service';
-import { Inventory } from '../../infrastructure/database/entities/inventory/inventory.entity';
-import { Product } from '../../infrastructure/database/entities/product/product.entity';
+import { TenantConnectionService } from '../../infrastructure/database/tenant-connection/tenant-connection.service.js';
+import { Inventory } from '../../infrastructure/database/entities/inventory/inventory.entity.js';
+import { Product } from '../../infrastructure/database/entities/product/product.entity.js';
 
-import { CreateInventoryDto } from './dto/create-inventory.dto';
-import { UpdateInventoryDto } from './dto/update-inventory.dto';
+import { CreateInventoryDto } from './dto/create-inventory.dto.js';
+import { UpdateInventoryDto } from './dto/update-inventory.dto.js';
 
 @Injectable()
 export class InventoryService {

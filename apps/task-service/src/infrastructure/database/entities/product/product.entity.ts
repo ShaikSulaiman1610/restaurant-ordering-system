@@ -9,7 +9,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 
-import { Category } from '../category/category.entity';
+import { Category } from '../category/category.entity.js';
 
 @Entity('products')
 @Index('IDX_products_category_id', ['categoryId'])

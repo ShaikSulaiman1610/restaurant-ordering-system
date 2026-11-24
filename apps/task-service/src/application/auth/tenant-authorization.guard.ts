@@ -15,9 +15,9 @@ import { Repository } from 'typeorm';
 import {
   RestaurantMembership,
   RestaurantRole,
-} from '../../infrastructure/database/entities/restaurant-membership.entity';
+} from '../../infrastructure/database/entities/restaurant-membership.entity.js';
 
-import { AuthenticatedRequest } from './jwt-auth.guard';
+import { AuthenticatedRequest } from './jwt-auth.guard.js';
 
 @Injectable()
 export class TenantAuthorizationGuard implements CanActivate {

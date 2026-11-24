@@ -8,8 +8,8 @@ import {
   Index,
 } from 'typeorm';
 
-import { Order } from './order.entity';
-import { Product } from '../product/product.entity';
+import { Order } from './order.entity.js';
+import { Product } from '../product/product.entity.js';
 
 @Entity('order_items')
 @Index('IDX_order_items_order_id', ['orderId'])

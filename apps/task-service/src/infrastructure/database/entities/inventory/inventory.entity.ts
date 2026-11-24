@@ -9,7 +9,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 
-import { Product } from '../product/product.entity';
+import { Product } from '../product/product.entity.js';
 
 @Entity('inventories')
 export class Inventory {

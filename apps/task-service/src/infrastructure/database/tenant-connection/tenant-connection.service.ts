@@ -8,14 +8,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { DataSource, Repository } from 'typeorm';
 
-import { Tenant } from '../entities/tenant.entity';
-import { Category } from '../entities/category/category.entity';
-import { Product } from '../entities/product/product.entity';
-import { Modifier } from '../entities/modifier/modifier.entity';
-import { Inventory } from '../entities/inventory/inventory.entity';
-import { Order } from '../entities/order/order.entity';
-import { OrderItem } from '../entities/order/order-item.entity';
-import { Payment } from '../entities/payment/payment.entity';
+import { Tenant } from '../entities/tenant.entity.js';
+import { Category } from '../entities/category/category.entity.js';
+import { Product } from '../entities/product/product.entity.js';
+import { Modifier } from '../entities/modifier/modifier.entity.js';
+import { Inventory } from '../entities/inventory/inventory.entity.js';
+import { Order } from '../entities/order/order.entity.js';
+import { OrderItem } from '../entities/order/order-item.entity.js';
+import { Payment } from '../entities/payment/payment.entity.js';
 
 @Injectable()
 export class TenantConnectionService implements OnModuleDestroy {

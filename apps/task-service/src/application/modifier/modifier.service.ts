@@ -7,12 +7,12 @@ import {
 } from '@nestjs/common';
 import { DataSource, QueryFailedError } from 'typeorm';
 
-import { TenantConnectionService } from '../../infrastructure/database/tenant-connection/tenant-connection.service';
-import { Product } from '../../infrastructure/database/entities/product/product.entity';
-import { Modifier } from '../../infrastructure/database/entities/modifier/modifier.entity';
+import { TenantConnectionService } from '../../infrastructure/database/tenant-connection/tenant-connection.service.js';
+import { Product } from '../../infrastructure/database/entities/product/product.entity.js';
+import { Modifier } from '../../infrastructure/database/entities/modifier/modifier.entity.js';
 
-import { CreateModifierDto } from './dto/create-modifier.dto';
-import { UpdateModifierDto } from './dto/update-modifier.dto';
+import { CreateModifierDto } from './dto/create-modifier.dto.js';
+import { UpdateModifierDto } from './dto/update-modifier.dto.js';
 
 @Injectable()
 export class ModifierService {

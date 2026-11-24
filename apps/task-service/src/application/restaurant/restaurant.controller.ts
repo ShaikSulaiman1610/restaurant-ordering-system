@@ -33,14 +33,14 @@ import {
 
 import { memoryStorage } from 'multer';
 
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import type { AuthenticatedRequest } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
+import type { AuthenticatedRequest } from '../auth/jwt-auth.guard.js';
 
-import { Tenant } from '../../infrastructure/database/entities/tenant.entity';
+import { Tenant } from '../../infrastructure/database/entities/tenant.entity.js';
 
-import { RestaurantService } from './restaurant.service';
-import { CreateRestaurantDto } from './dto/create-restaurant.dto';
-import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
+import { RestaurantService } from './restaurant.service.js';
+import { CreateRestaurantDto } from './dto/create-restaurant.dto.js';
+import { UpdateRestaurantDto } from './dto/update-restaurant.dto.js';
 
 @ApiTags('Restaurants')
 @Controller('restaurants')

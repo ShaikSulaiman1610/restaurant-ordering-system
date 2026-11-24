@@ -22,11 +22,11 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
-import { AuthService } from './auth.service';
-import { JwtAuthGuard } from './jwt-auth.guard';
-import type { AuthenticatedRequest } from './jwt-auth.guard';
-import { LoginDto } from './login.dto';
-import { RegisterDto } from './register.dto';
+import { AuthService } from './auth.service.js';
+import { JwtAuthGuard } from './jwt-auth.guard.js';
+import type { AuthenticatedRequest } from './jwt-auth.guard.js';
+import { LoginDto } from './login.dto.js';
+import { RegisterDto } from './register.dto.js';
 
 @ApiTags('Authentication')
 @Controller('auth')

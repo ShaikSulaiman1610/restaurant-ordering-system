@@ -7,20 +7,20 @@ import {
 } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
 
-import { TenantConnectionService } from '../../infrastructure/database/tenant-connection/tenant-connection.service';
+import { TenantConnectionService } from '../../infrastructure/database/tenant-connection/tenant-connection.service.js';
 import {
   Order,
   OrderStatus,
-} from '../../infrastructure/database/entities/order/order.entity';
+} from '../../infrastructure/database/entities/order/order.entity.js';
 import {
   Payment,
   PaymentStatus,
-} from '../../infrastructure/database/entities/payment/payment.entity';
+} from '../../infrastructure/database/entities/payment/payment.entity.js';
 
 import {
   CreatePaymentDto,
   SimulatedPaymentResult,
-} from './dto/create-payment.dto';
+} from './dto/create-payment.dto.js';
 
 @Injectable()
 export class PaymentService {

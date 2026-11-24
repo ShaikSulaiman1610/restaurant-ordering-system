@@ -28,13 +28,13 @@ import {
   ApiForbiddenResponse,
 } from '@nestjs/swagger';
 
-import { CategoryService } from './category.service';
-import { CreateCategoryDto } from './dto/create-category.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
-import { Category } from '../../infrastructure/database/entities/category/category.entity';
+import { CategoryService } from './category.service.js';
+import { CreateCategoryDto } from './dto/create-category.dto.js';
+import { UpdateCategoryDto } from './dto/update-category.dto.js';
+import { Category } from '../../infrastructure/database/entities/category/category.entity.js';
 
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { TenantAuthorizationGuard } from '../auth/tenant-authorization.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
+import { TenantAuthorizationGuard } from '../auth/tenant-authorization.guard.js';
 
 @ApiTags('Categories')
 @ApiParam({

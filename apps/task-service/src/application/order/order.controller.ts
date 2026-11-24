@@ -22,9 +22,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { OrderService } from './order.service';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { OrderService } from './order.service.js';
+import { CreateOrderDto } from './dto/create-order.dto.js';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto.js';
 
 @ApiTags('Orders')
 @ApiParam({

@@ -6,10 +6,10 @@ import {
 } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
 
-import { TenantConnectionService } from '../../infrastructure/database/tenant-connection/tenant-connection.service';
-import { Category } from '../../infrastructure/database/entities/category/category.entity';
-import { CreateCategoryDto } from './dto/create-category.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
+import { TenantConnectionService } from '../../infrastructure/database/tenant-connection/tenant-connection.service.js';
+import { Category } from '../../infrastructure/database/entities/category/category.entity.js';
+import { CreateCategoryDto } from './dto/create-category.dto.js';
+import { UpdateCategoryDto } from './dto/update-category.dto.js';
 
 @Injectable()
 export class CategoryService {

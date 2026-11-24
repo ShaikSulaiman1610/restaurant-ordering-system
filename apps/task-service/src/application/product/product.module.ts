@@ -1,10 +1,10 @@
 
 import { Module } from '@nestjs/common';
 
-import { ProductController } from './product.controller';
-import { ProductService } from './product.service';
+import { ProductController } from './product.controller.js';
+import { ProductService } from './product.service.js';
 
-import { TenantDatabaseModule } from '../../infrastructure/database/tenant-database.module';
+import { TenantDatabaseModule } from '../../infrastructure/database/tenant-database.module.js';
 
 @Module({
   imports: [TenantDatabaseModule],

@@ -3,24 +3,24 @@ import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { TaskServiceController } from './task-service.controller';
-import { TaskServiceService } from './task-service.service';
+import { TaskServiceController } from './task-service.controller.js';
+import { TaskServiceService } from './task-service.service.js';
 
-import { Tenant } from './infrastructure/database/entities/tenant.entity';
-import { User } from './infrastructure/database/entities/user.entity';
-import { RestaurantMembership } from './infrastructure/database/entities/restaurant-membership.entity';
-import { TenantDatabaseModule } from './infrastructure/database/tenant-database.module';
+import { Tenant } from './infrastructure/database/entities/tenant.entity.js';
+import { User } from './infrastructure/database/entities/user.entity.js';
+import { RestaurantMembership } from './infrastructure/database/entities/restaurant-membership.entity.js';
+import { TenantDatabaseModule } from './infrastructure/database/tenant-database.module.js';
 
-import { AuthModule } from './application/auth/auth.module';
-import { ApiSecurityGuard } from './application/auth/api-security.guard';
+import { AuthModule } from './application/auth/auth.module.js';
+import { ApiSecurityGuard } from './application/auth/api-security.guard.js';
 
-import { CategoryModule } from './application/category/category.module';
-import { ProductModule } from './application/product/product.module';
-import { ModifierModule } from './application/modifier/modifier.module';
-import { InventoryModule } from './application/inventory/inventory.module';
-import { OrderModule } from './application/order/order.module';
-import { RestaurantModule } from './application/restaurant/restaurant.module';
-import { PaymentModule } from './application/payment/payment.module';
+import { CategoryModule } from './application/category/category.module.js';
+import { ProductModule } from './application/product/product.module.js';
+import { ModifierModule } from './application/modifier/modifier.module.js';
+import { InventoryModule } from './application/inventory/inventory.module.js';
+import { OrderModule } from './application/order/order.module.js';
+import { RestaurantModule } from './application/restaurant/restaurant.module.js';
+import { PaymentModule } from './application/payment/payment.module.js';
 
 @Module({
   imports: [

@@ -13,12 +13,12 @@ import { Repository } from 'typeorm';
 import {
   RestaurantMembership,
   RestaurantRole,
-} from '../../infrastructure/database/entities/restaurant-membership.entity';
+} from '../../infrastructure/database/entities/restaurant-membership.entity.js';
 
 import {
   JwtAuthGuard,
   AuthenticatedRequest,
-} from './jwt-auth.guard';
+} from './jwt-auth.guard.js';
 
 @Injectable()
 export class ApiSecurityGuard implements CanActivate {

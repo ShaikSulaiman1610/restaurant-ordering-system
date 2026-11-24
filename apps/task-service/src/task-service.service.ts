@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { Tenant } from './infrastructure/database/entities/tenant.entity';
+import { Tenant } from './infrastructure/database/entities/tenant.entity.js';
 
 @Injectable()
 export class TaskServiceService {

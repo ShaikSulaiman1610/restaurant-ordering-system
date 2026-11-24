@@ -1,9 +1,9 @@
 
 import { Module } from '@nestjs/common';
 
-import { ModifierController } from './modifier.controller';
-import { ModifierService } from './modifier.service';
-import { TenantDatabaseModule } from '../../infrastructure/database/tenant-database.module';
+import { ModifierController } from './modifier.controller.js';
+import { ModifierService } from './modifier.service.js';
+import { TenantDatabaseModule } from '../../infrastructure/database/tenant-database.module.js';
 
 @Module({
   imports: [TenantDatabaseModule],

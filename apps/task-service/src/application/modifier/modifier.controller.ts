@@ -24,9 +24,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { ModifierService } from './modifier.service';
-import { CreateModifierDto } from './dto/create-modifier.dto';
-import { UpdateModifierDto } from './dto/update-modifier.dto';
+import { ModifierService } from './modifier.service.js';
+import { CreateModifierDto } from './dto/create-modifier.dto.js';
+import { UpdateModifierDto } from './dto/update-modifier.dto.js';
 
 @ApiTags('Modifiers')
 @ApiParam({

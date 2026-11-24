@@ -25,10 +25,10 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { ProductService } from './product.service';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-import { ListProductsQueryDto } from './dto/list-products-query.dto';
+import { ProductService } from './product.service.js';
+import { CreateProductDto } from './dto/create-product.dto.js';
+import { UpdateProductDto } from './dto/update-product.dto.js';
+import { ListProductsQueryDto } from './dto/list-products-query.dto.js';
 
 @ApiTags('Products')
 @ApiParam({

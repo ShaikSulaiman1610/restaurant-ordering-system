@@ -21,8 +21,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { PaymentService } from './payment.service';
-import { CreatePaymentDto } from './dto/create-payment.dto';
+import { PaymentService } from './payment.service.js';
+import { CreatePaymentDto } from './dto/create-payment.dto.js';
 
 @ApiTags('Payments')
 @ApiParam({

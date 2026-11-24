@@ -1,10 +1,10 @@
 
 import { Module } from '@nestjs/common';
 
-import { TenantDatabaseModule } from '../../infrastructure/database/tenant-database.module';
-import { CategoryController } from './category.controller';
-import { CategoryService } from './category.service';
-import { AuthModule } from '../auth/auth.module';
+import { TenantDatabaseModule } from '../../infrastructure/database/tenant-database.module.js';
+import { CategoryController } from './category.controller.js';
+import { CategoryService } from './category.service.js';
+import { AuthModule } from '../auth/auth.module.js';
 
 @Module({
   imports: [

@@ -9,15 +9,15 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, QueryFailedError, Repository } from 'typeorm';
 
-import { Tenant } from '../../infrastructure/database/entities/tenant.entity';
+import { Tenant } from '../../infrastructure/database/entities/tenant.entity.js';
 import {
   RestaurantMembership,
   RestaurantRole,
-} from '../../infrastructure/database/entities/restaurant-membership.entity';
-import { CloudinaryService } from '../../infrastructure/cloudinary/cloudinary.service';
-import { RestaurantProvisioningService } from './restaurant-provisioning.service';
-import { CreateRestaurantDto } from './dto/create-restaurant.dto';
-import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
+} from '../../infrastructure/database/entities/restaurant-membership.entity.js';
+import { CloudinaryService } from '../../infrastructure/cloudinary/cloudinary.service.js';
+import { RestaurantProvisioningService } from './restaurant-provisioning.service.js';
+import { CreateRestaurantDto } from './dto/create-restaurant.dto.js';
+import { UpdateRestaurantDto } from './dto/update-restaurant.dto.js';
 
 @Injectable()
 export class RestaurantService {

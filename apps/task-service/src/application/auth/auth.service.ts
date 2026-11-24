@@ -10,10 +10,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { compare, hash } from 'bcrypt';
 import { QueryFailedError, Repository } from 'typeorm';
 
-import { User } from '../../infrastructure/database/entities/user.entity';
-import { RestaurantMembership } from '../../infrastructure/database/entities/restaurant-membership.entity';
-import { RegisterDto } from './register.dto';
-import { LoginDto } from './login.dto';
+import { User } from '../../infrastructure/database/entities/user.entity.js';
+import { RestaurantMembership } from '../../infrastructure/database/entities/restaurant-membership.entity.js';
+import { RegisterDto } from './register.dto.js';
+import { LoginDto } from './login.dto.js';
 
 @Injectable()
 export class AuthService {

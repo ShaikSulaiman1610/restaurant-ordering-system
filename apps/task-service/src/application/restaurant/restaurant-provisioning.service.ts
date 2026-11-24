@@ -7,21 +7,21 @@ import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
 import { DataSource } from 'typeorm';
 
-import { Category } from '../../infrastructure/database/entities/category/category.entity';
-import { Product } from '../../infrastructure/database/entities/product/product.entity';
-import { Modifier } from '../../infrastructure/database/entities/modifier/modifier.entity';
-import { Inventory } from '../../infrastructure/database/entities/inventory/inventory.entity';
-import { Order } from '../../infrastructure/database/entities/order/order.entity';
-import { OrderItem } from '../../infrastructure/database/entities/order/order-item.entity';
-import { Payment } from '../../infrastructure/database/entities/payment/payment.entity';
+import { Category } from '../../infrastructure/database/entities/category/category.entity.js';
+import { Product } from '../../infrastructure/database/entities/product/product.entity.js';
+import { Modifier } from '../../infrastructure/database/entities/modifier/modifier.entity.js';
+import { Inventory } from '../../infrastructure/database/entities/inventory/inventory.entity.js';
+import { Order } from '../../infrastructure/database/entities/order/order.entity.js';
+import { OrderItem } from '../../infrastructure/database/entities/order/order-item.entity.js';
+import { Payment } from '../../infrastructure/database/entities/payment/payment.entity.js';
 
-import { CreateCategories1762970000000 } from '../../infrastructure/database/migrations/1762970000000-CreateCategories';
-import { CreateProducts1763530000000 } from '../../infrastructure/database/migrations/1763530000000-CreateProducts';
-import { CreateModifiers1763700000000 } from '../../infrastructure/database/migrations/1763700000000-CreateModifiers';
-import { CreateInventories1763790000000 } from '../../infrastructure/database/migrations/1763790000000-CreateInventories';
-import { CreateOrders1763800000000 } from '../../infrastructure/database/migrations/1763800000000-CreateOrders';
-import { CreatePayments1763900000000 } from '../../infrastructure/database/migrations/1763900000000-CreatePayments';
-import { AddProductListingIndexes1795393000000 } from '../../infrastructure/database/migrations/1795393000000-AddProductListingIndexes';
+import { CreateCategories1762970000000 } from '../../infrastructure/database/migrations/1762970000000-CreateCategories.js';
+import { CreateProducts1763530000000 } from '../../infrastructure/database/migrations/1763530000000-CreateProducts.js';
+import { CreateModifiers1763700000000 } from '../../infrastructure/database/migrations/1763700000000-CreateModifiers.js';
+import { CreateInventories1763790000000 } from '../../infrastructure/database/migrations/1763790000000-CreateInventories.js';
+import { CreateOrders1763800000000 } from '../../infrastructure/database/migrations/1763800000000-CreateOrders.js';
+import { CreatePayments1763900000000 } from '../../infrastructure/database/migrations/1763900000000-CreatePayments.js';
+import { AddProductListingIndexes1795393000000 } from '../../infrastructure/database/migrations/1795393000000-AddProductListingIndexes.js';
 
 @Injectable()
 export class RestaurantProvisioningService {

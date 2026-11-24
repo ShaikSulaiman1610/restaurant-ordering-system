@@ -2,8 +2,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { Tenant } from './entities/tenant.entity';
-import { TenantConnectionService } from './tenant-connection/tenant-connection.service';
+import { Tenant } from './entities/tenant.entity.js';
+import { TenantConnectionService } from './tenant-connection/tenant-connection.service.js';
 
 @Module({
   imports: [

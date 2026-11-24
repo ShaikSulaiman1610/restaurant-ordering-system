@@ -6,21 +6,21 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { TenantConnectionService } from '../../infrastructure/database/tenant-connection/tenant-connection.service';
-import { Product } from '../../infrastructure/database/entities/product/product.entity';
-import { Inventory } from '../../infrastructure/database/entities/inventory/inventory.entity';
+import { TenantConnectionService } from '../../infrastructure/database/tenant-connection/tenant-connection.service.js';
+import { Product } from '../../infrastructure/database/entities/product/product.entity.js';
+import { Inventory } from '../../infrastructure/database/entities/inventory/inventory.entity.js';
 import {
   Order,
   OrderStatus,
-} from '../../infrastructure/database/entities/order/order.entity';
-import { OrderItem } from '../../infrastructure/database/entities/order/order-item.entity';
+} from '../../infrastructure/database/entities/order/order.entity.js';
+import { OrderItem } from '../../infrastructure/database/entities/order/order-item.entity.js';
 import {
   Payment,
   PaymentStatus,
-} from '../../infrastructure/database/entities/payment/payment.entity';
+} from '../../infrastructure/database/entities/payment/payment.entity.js';
 
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { CreateOrderDto } from './dto/create-order.dto.js';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto.js';
 
 @Injectable()
 export class OrderService {

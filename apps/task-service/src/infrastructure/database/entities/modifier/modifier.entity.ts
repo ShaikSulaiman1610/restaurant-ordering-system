@@ -10,7 +10,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 
-import { Product } from '../product/product.entity';
+import { Product } from '../product/product.entity.js';
 
 @Entity('modifiers')
 @Index('IDX_modifiers_product_id', ['productId'])

@@ -2,7 +2,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum } from 'class-validator';
 
-import { OrderStatus } from '../../../infrastructure/database/entities/order/order.entity';
+import { OrderStatus } from '../../../infrastructure/database/entities/order/order.entity.js';
 
 export class UpdateOrderStatusDto {
   @ApiProperty({

@@ -7,9 +7,9 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 
-import { TaskServiceService } from './task-service.service';
-import { Tenant } from './infrastructure/database/entities/tenant.entity';
-import { TenantConnectionService } from './infrastructure/database/tenant-connection/tenant-connection.service';
+import { TaskServiceService } from './task-service.service.js';
+import { Tenant } from './infrastructure/database/entities/tenant.entity.js';
+import { TenantConnectionService } from './infrastructure/database/tenant-connection/tenant-connection.service.js';
 
 @Controller()
 export class TaskServiceController {
