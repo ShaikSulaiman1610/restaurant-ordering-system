@@ -25,6 +25,11 @@ async function bootstrap(): Promise<void> {
       'Multi-tenant restaurant ordering, menu, inventory and order management API',
     )
     .setVersion('1.0')
+    .addBearerAuth({
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT',
+    })
     .addTag('Restaurants')
     .addTag('Categories')
     .addTag('Products')

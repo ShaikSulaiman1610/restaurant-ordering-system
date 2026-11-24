@@ -1,4 +1,3 @@
-
 import {
   Injectable,
   Logger,
@@ -81,6 +80,11 @@ export class TenantConnectionService implements OnModuleDestroy {
       username: this.configService.getOrThrow<string>('DB_USERNAME'),
       password: this.configService.getOrThrow<string>('DB_PASSWORD'),
       database: databaseName,
+
+      ssl:
+        this.configService.get<string>('DB_SSL') === 'true'
+          ? { rejectUnauthorized: true }
+          : false,
 
       // Each restaurant has its own database entities
       entities: [

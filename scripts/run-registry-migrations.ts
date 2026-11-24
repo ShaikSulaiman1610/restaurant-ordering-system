@@ -1,4 +1,3 @@
-
 import 'reflect-metadata';
 import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
@@ -34,6 +33,10 @@ async function main(): Promise<void> {
     password: process.env.DB_PASSWORD,
 
     database: databaseName,
+
+    ssl: process.env.DB_SSL === 'true'
+      ? { rejectUnauthorized: true }
+      : false,
 
     entities: [Tenant],
 

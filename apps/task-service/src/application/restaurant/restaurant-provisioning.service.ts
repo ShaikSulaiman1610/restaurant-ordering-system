@@ -1,4 +1,3 @@
-
 import {
   Injectable,
   InternalServerErrorException,
@@ -64,7 +63,14 @@ export class RestaurantProvisioningService {
       database: this.configService.getOrThrow<string>(
         'DB_REGISTRY_NAME',
       ),
+
+      ssl:
+        this.configService.get<string>('DB_SSL') === 'true'
+          ? { rejectUnauthorized: true }
+          : false,
+
       synchronize: false,
+
       extra: {
         max: 1,
         connectionTimeoutMillis: 5000,
@@ -89,6 +95,11 @@ export class RestaurantProvisioningService {
         'DB_PASSWORD',
       ),
       database: databaseName,
+
+      ssl:
+        this.configService.get<string>('DB_SSL') === 'true'
+          ? { rejectUnauthorized: true }
+          : false,
 
       entities: [
         Category,
