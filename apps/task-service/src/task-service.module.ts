@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -11,6 +12,8 @@ import { RestaurantMembership } from './infrastructure/database/entities/restaur
 import { TenantDatabaseModule } from './infrastructure/database/tenant-database.module';
 
 import { AuthModule } from './application/auth/auth.module';
+import { ApiSecurityGuard } from './application/auth/api-security.guard';
+
 import { CategoryModule } from './application/category/category.module';
 import { ProductModule } from './application/product/product.module';
 import { ModifierModule } from './application/modifier/modifier.module';
@@ -73,7 +76,15 @@ import { PaymentModule } from './application/payment/payment.module';
     RestaurantModule,
     PaymentModule,
   ],
+
   controllers: [TaskServiceController],
-  providers: [TaskServiceService],
+
+  providers: [
+    TaskServiceService,
+    {
+      provide: APP_GUARD,
+      useClass: ApiSecurityGuard,
+    },
+  ],
 })
 export class TaskServiceModule {}

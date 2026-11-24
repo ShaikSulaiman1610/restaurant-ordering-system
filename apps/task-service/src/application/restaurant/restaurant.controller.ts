@@ -1,4 +1,3 @@
-
 import {
   Body,
   Controller,
@@ -29,12 +28,15 @@ import {
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
 } from '@nestjs/swagger';
 
 import { memoryStorage } from 'multer';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthenticatedRequest } from '../auth/jwt-auth.guard';
+
+import { Tenant } from '../../infrastructure/database/entities/tenant.entity';
 
 import { RestaurantService } from './restaurant.service';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
@@ -46,6 +48,17 @@ export class RestaurantController {
   constructor(
     private readonly restaurantService: RestaurantService,
   ) {}
+
+  private toPublicResponse(restaurant: Tenant) {
+    return {
+      id: restaurant.id,
+      restaurantName: restaurant.restaurantName,
+      location: restaurant.location,
+      coverImageUrl: restaurant.coverImageUrl,
+      createdAt: restaurant.createdAt,
+      updatedAt: restaurant.updatedAt,
+    };
+  }
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -72,10 +85,12 @@ export class RestaurantController {
     @Body() dto: CreateRestaurantDto,
     @Req() request: AuthenticatedRequest,
   ) {
-    return this.restaurantService.create(
+    const restaurant = await this.restaurantService.create(
       dto,
       request.user!.id,
     );
+
+    return this.toPublicResponse(restaurant);
   }
 
   @Get()
@@ -86,7 +101,12 @@ export class RestaurantController {
     description: 'Restaurants retrieved successfully',
   })
   async findAll() {
-    return this.restaurantService.findAll();
+    const restaurants =
+      await this.restaurantService.findAll();
+
+    return restaurants.map((restaurant) =>
+      this.toPublicResponse(restaurant),
+    );
   }
 
   @Get(':id')
@@ -102,10 +122,20 @@ export class RestaurantController {
   async findOne(
     @Param('id', ParseUUIDPipe) restaurantId: string,
   ) {
-    return this.restaurantService.findOne(restaurantId);
+    const restaurant =
+      await this.restaurantService.findOne(restaurantId);
+
+    return this.toPublicResponse(restaurant);
   }
 
   @Patch(':id')
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse({
+    description: 'Authentication is required',
+  })
+  @ApiForbiddenResponse({
+    description: 'Restaurant owner permission is required',
+  })
   @ApiOperation({
     summary: 'Update restaurant name or location',
   })
@@ -126,13 +156,22 @@ export class RestaurantController {
     @Param('id', ParseUUIDPipe) restaurantId: string,
     @Body() dto: UpdateRestaurantDto,
   ) {
-    return this.restaurantService.update(
+    const restaurant = await this.restaurantService.update(
       restaurantId,
       dto,
     );
+
+    return this.toPublicResponse(restaurant);
   }
 
   @Post(':id/cover-image')
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse({
+    description: 'Authentication is required',
+  })
+  @ApiForbiddenResponse({
+    description: 'Restaurant owner permission is required',
+  })
   @ApiOperation({
     summary: 'Upload or replace restaurant cover image',
   })
@@ -181,13 +220,23 @@ export class RestaurantController {
     )
     file: Express.Multer.File,
   ) {
-    return this.restaurantService.uploadCoverImage(
-      restaurantId,
-      file,
-    );
+    const restaurant =
+      await this.restaurantService.uploadCoverImage(
+        restaurantId,
+        file,
+      );
+
+    return this.toPublicResponse(restaurant);
   }
 
   @Delete(':id/cover-image')
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse({
+    description: 'Authentication is required',
+  })
+  @ApiForbiddenResponse({
+    description: 'Restaurant owner permission is required',
+  })
   @ApiOperation({
     summary: 'Delete restaurant cover image',
   })
@@ -201,8 +250,11 @@ export class RestaurantController {
   async deleteCoverImage(
     @Param('id', ParseUUIDPipe) restaurantId: string,
   ) {
-    return this.restaurantService.deleteCoverImage(
-      restaurantId,
-    );
+    const restaurant =
+      await this.restaurantService.deleteCoverImage(
+        restaurantId,
+      );
+
+    return this.toPublicResponse(restaurant);
   }
 }
