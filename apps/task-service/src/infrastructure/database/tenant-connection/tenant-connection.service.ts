@@ -8,6 +8,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { DataSource, Repository } from 'typeorm';
 
+import * as pg from 'pg';
+
 import { Tenant } from '../entities/tenant.entity.js';
 import { Category } from '../entities/category/category.entity.js';
 import { Product } from '../entities/product/product.entity.js';
@@ -75,6 +77,9 @@ export class TenantConnectionService implements OnModuleDestroy {
   ): Promise<DataSource> {
     const dataSource = new DataSource({
       type: 'postgres',
+
+      driver: pg,
+
       host: this.configService.getOrThrow<string>('DB_HOST'),
       port: Number(this.configService.getOrThrow<string>('DB_PORT')),
       username: this.configService.getOrThrow<string>('DB_USERNAME'),

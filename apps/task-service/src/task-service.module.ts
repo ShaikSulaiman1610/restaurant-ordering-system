@@ -3,6 +3,8 @@ import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import * as pg from 'pg';
+
 import { TaskServiceController } from './task-service.controller.js';
 import { TaskServiceService } from './task-service.service.js';
 
@@ -33,6 +35,9 @@ import { PaymentModule } from './application/payment/payment.module.js';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
+
+        driver: pg,
+
         host: configService.getOrThrow<string>('DB_HOST'),
         port: Number(configService.getOrThrow<string>('DB_PORT')),
         username: configService.getOrThrow<string>('DB_USERNAME'),

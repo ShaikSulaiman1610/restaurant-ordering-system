@@ -7,6 +7,8 @@ import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
 import { DataSource } from 'typeorm';
 
+import * as pg from 'pg';
+
 import { Category } from '../../infrastructure/database/entities/category/category.entity.js';
 import { Product } from '../../infrastructure/database/entities/product/product.entity.js';
 import { Modifier } from '../../infrastructure/database/entities/modifier/modifier.entity.js';
@@ -50,6 +52,9 @@ export class RestaurantProvisioningService {
   private createAdminConnection(): DataSource {
     return new DataSource({
       type: 'postgres',
+
+      driver: pg,
+
       host: this.configService.getOrThrow<string>('DB_HOST'),
       port: Number(
         this.configService.getOrThrow<string>('DB_PORT'),
@@ -84,6 +89,9 @@ export class RestaurantProvisioningService {
   ): DataSource {
     return new DataSource({
       type: 'postgres',
+
+      driver: pg,
+
       host: this.configService.getOrThrow<string>('DB_HOST'),
       port: Number(
         this.configService.getOrThrow<string>('DB_PORT'),
