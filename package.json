@@ -69,5 +69,6 @@
     "tsx": "^4.23.15",
     "typescript": "^6.0.2",
     "webpack-node-externals": "^3.0.0"
-  }
+  },
+  "type": "module"
 }
