@@ -6,6 +6,7 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -24,6 +25,8 @@ export class ApiSecurityGuard implements CanActivate {
   constructor(
     private readonly jwtAuthGuard: JwtAuthGuard,
 
+    private readonly configService: ConfigService,
+
     @InjectRepository(RestaurantMembership)
     private readonly membershipRepository:
       Repository<RestaurantMembership>,
@@ -39,6 +42,20 @@ export class ApiSecurityGuard implements CanActivate {
     const method = request.method.toUpperCase();
 
     const path = request.path.replace(/\/+$/, '') || '/';
+
+    const demoMode =
+      this.configService.get<string>('DEMO_MODE') === 'true';
+
+    // Temporary public demo protection
+    if (
+      demoMode &&
+      method === 'POST' &&
+      ['/auth/register', '/restaurants'].includes(path)
+    ) {
+      throw new ForbiddenException(
+        'Registration and restaurant provisioning are disabled in demo mode',
+      );
+    }
 
     // Public health endpoint
     if (method === 'GET' && path === '/') {
